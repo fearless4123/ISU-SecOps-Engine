@@ -7,6 +7,7 @@ mod subdomain;
 mod http_audit;
 mod port_scan;
 mod fuzzer;
+mod mail_audit;
 
 #[derive(Parser)]
 #[command(name = "secops")]
@@ -62,6 +63,11 @@ enum PentestCommands {
         /// Target base URL (e.g., https://example.com)
         url: String,
     },
+    /// Email spoofing audit (SPF/DMARC)
+    MailAudit {
+        /// Target domain (e.g., example.com)
+        domain: String,
+    },
 }
 
 #[tokio::main]
@@ -85,6 +91,9 @@ async fn main() -> anyhow::Result<()> {
             }
             PentestCommands::Fuzz { url } => {
                 fuzzer::run_fuzz(&url).await?;
+            }
+            PentestCommands::MailAudit { domain } => {
+                mail_audit::run_mail_audit(&domain).await?;
             }
         },
         Commands::WebUi { port } => {
