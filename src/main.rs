@@ -4,6 +4,7 @@ use colored::*;
 mod ssl_check;
 mod web_ui;
 mod subdomain;
+mod http_audit;
 
 #[derive(Parser)]
 #[command(name = "secops")]
@@ -44,6 +45,11 @@ enum PentestCommands {
         /// Target domain (e.g., example.com)
         domain: String,
     },
+    /// HTTP security header audit
+    HttpHeaders {
+        /// Target URL (e.g., https://google.com)
+        url: String,
+    },
 }
 
 #[tokio::main]
@@ -58,6 +64,9 @@ async fn main() -> anyhow::Result<()> {
             }
             PentestCommands::SubEnum { domain } => {
                 subdomain::run_sub_enum(&domain).await?;
+            }
+            PentestCommands::HttpHeaders { url } => {
+                http_audit::run_http_audit(&url).await?;
             }
         },
         Commands::WebUi { port } => {
