@@ -38,9 +38,13 @@ enum PentestCommands {
         #[arg(long)]
         grade: bool,
 
-        /// Enumerate all supported cipher suites
+        /// Enumerate all supported cipher suites (handshake probing)
         #[arg(long)]
         ciphers: bool,
+
+        /// Export the full analysis to a JSON file
+        #[arg(long, value_name = "FILE")]
+        json: Option<String>,
     },
 }
 
@@ -50,9 +54,9 @@ async fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Pentest { action } => match action {
-            PentestCommands::SslCheck { host, grade, ciphers } => {
+            PentestCommands::SslCheck { host, grade, ciphers, json } => {
                 println!("{} Analyzing SSL/TLS for {}...", "ℹ".blue(), host.bold());
-                ssl_check::run_analysis(&host, grade, ciphers).await?;
+                ssl_check::run_analysis(&host, grade, ciphers, json).await?;
             }
         },
         Commands::WebUi { port } => {

@@ -1,15 +1,18 @@
 use crate::ssl_check::scanner::perform_analysis;
 use colored::*;
 use anyhow::Result;
+use std::fs::File;
+use std::io::Write;
 
 pub mod models;
 pub mod scanner;
 
-pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> Result<()> {
+pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool, json_path: Option<String>) -> Result<()> {
     match perform_analysis(host, probe_ciphers).await {
         Ok(analysis) => {
+            // 1. Terminal Output
             println!("\n{}", "--- Certificate Information ---".bold().cyan());
-            if let Some(cert) = analysis.certificate {
+            if let Some(ref cert) = analysis.certificate {
                 println!("{:<20}: {}", "Common Name".yellow(), cert.common_name);
                 println!("{:<20}: {}", "Issuer".yellow(), cert.issuer);
                 println!("{:<20}: {}", "Key Info".yellow(), cert.key_info);
@@ -21,7 +24,7 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> 
                 let hsts = if cert.hsts_enabled { "ENABLED".green().bold() } else { "DISABLED".red() };
                 println!("{:<20}: {}", "HSTS".yellow(), hsts);
 
-                let revocation = if cert.revocation_status.contains("Good") {
+                let revocation = if cert.revocation_status.contains("Good") || cert.revocation_status.contains("Available") {
                     cert.revocation_status.green().bold()
                 } else {
                     cert.revocation_status.yellow()
@@ -41,13 +44,13 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> 
                 println!("{:<20}: {}", "CAA Records".yellow(), "NONE (Insecure/No Policy)".red());
             } else {
                 println!("{:<20}:", "CAA Records".yellow());
-                for caa in analysis.caa_records {
+                for caa in &analysis.caa_records {
                     println!("  ┗━ {}", caa.green());
                 }
             }
 
             println!("\n{}", "--- TLS Protocol Support ---".bold().cyan());
-            for tv in analysis.tls_versions {
+            for tv in &analysis.tls_versions {
                 let status = if tv.supported {
                     "SUPPORTED".green().bold()
                 } else {
@@ -58,7 +61,7 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> 
 
             if !analysis.supported_ciphers.is_empty() {
                 println!("\n{}", "--- Enumerated Cipher Suites ---".bold().cyan());
-                for cipher in analysis.supported_ciphers {
+                for cipher in &analysis.supported_ciphers {
                     let strength_color = match cipher.strength.as_str() {
                         "SECURE" => cipher.name.green(),
                         "WEAK" => cipher.name.yellow(),
@@ -66,7 +69,7 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> 
                         _ => cipher.name.white(),
                     };
                     println!("{} [Strength: {}]", strength_color, cipher.strength);
-                    if let Some(rec) = cipher.recommendation {
+                    if let Some(ref rec) = cipher.recommendation {
                         println!("   ┗━ {}", rec.dimmed().italic());
                     }
                 }
@@ -84,6 +87,14 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> 
                     analysis.grade.red().bold()
                 };
                 println!("Grade: {}", grade_color);
+            }
+
+            // 2. Optional JSON Export
+            if let Some(path) = json_path {
+                let json_data = serde_json::to_string_pretty(&analysis)?;
+                let mut file = File::create(&path)?;
+                file.write_all(json_data.as_bytes())?;
+                println!("\n{} Analysis report successfully exported to: {}", "✔".green(), path.bold().cyan());
             }
         }
         Err(e) => {

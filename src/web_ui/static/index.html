@@ -57,8 +57,26 @@
 
         .ca-record { padding: 0.5rem; background: rgba(56, 189, 248, 0.1); border-radius: 0.5rem; border-left: 3px solid var(--accent-primary); margin-bottom: 0.5rem; font-size: 0.875rem; }
         .loader { display: none; width: 50px; height: 50px; border: 4px solid rgba(56, 189, 248, 0.1); border-top: 4px solid var(--accent-primary); border-radius: 50%; animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite; margin: 4rem auto; }
+        
+        .action-bar { display: none; margin-top: 2rem; justify-content: flex-end; }
+        .action-bar.active { display: flex; }
+        
+        .btn-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-primary); }
+
         @keyframes spin { to { transform: rotate(360deg); } }
         .error-box { display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger); padding: 1.5rem; border-radius: 1.25rem; margin-bottom: 2rem; text-align: center; }
+
+        /* Print Optimized Styles */
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .search-container, header, .action-bar, .loader, .error-box { display: none !important; }
+            main { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+            .dashboard-grid { grid-template-columns: 1fr !important; opacity: 1 !important; transform: none !important; }
+            .card { background: none !important; border: 1px solid #ddd !important; border-radius: 0 !important; box-shadow: none !important; break-inside: avoid; margin-bottom: 20px; }
+            .grade-highlight { -webkit-text-fill-color: #000 !important; background: none !important; font-size: 4rem !important; }
+            .status-pill { border: 1px solid #000 !important; color: #000 !important; background: none !important; }
+            .logo { display: block !important; -webkit-text-fill-color: #000 !important; text-align: center; margin-bottom: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -119,6 +137,10 @@
                 <div id="resCipherList" class="cipher-list"></div>
             </div>
         </div>
+
+        <div class="action-bar" id="actionBar">
+            <button class="btn-secondary" onclick="window.print()">Download PDF Report</button>
+        </div>
     </main>
 
     <script>
@@ -130,10 +152,12 @@
             const loader = document.getElementById('loader');
             const dashboard = document.getElementById('dashboard');
             const error = document.getElementById('error');
+            const actionBar = document.getElementById('actionBar');
 
             scanBtn.disabled = true;
             loader.style.display = 'block';
             dashboard.classList.remove('active');
+            actionBar.classList.remove('active');
             error.style.display = 'none';
 
             try {
@@ -150,7 +174,7 @@
                     document.getElementById('resHSTS').innerHTML = cert.hsts_enabled ? 
                         '<span class="status-pill pill-success">HSTS ENABLED</span>' : '<span class="status-pill pill-danger">HSTS MISSING</span>';
                     
-                    document.getElementById('resOCSP').innerHTML = cert.revocation_status.includes('Good') ? 
+                    document.getElementById('resOCSP').innerHTML = cert.revocation_status.includes('Good') || cert.revocation_status.includes('Available') ? 
                         `<span class="status-pill pill-success">${cert.revocation_status}</span>` : 
                         `<span class="status-pill pill-warning">${cert.revocation_status}</span>`;
 
@@ -188,6 +212,7 @@
                 }
 
                 dashboard.classList.add('active');
+                actionBar.classList.add('active');
             } catch (e) {
                 error.innerText = `Audit failed: ${e.message}`;
                 error.style.display = 'block';
