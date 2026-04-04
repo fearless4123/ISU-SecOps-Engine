@@ -3,6 +3,7 @@ use colored::*;
 
 mod ssl_check;
 mod web_ui;
+mod subdomain;
 
 #[derive(Parser)]
 #[command(name = "secops")]
@@ -38,6 +39,11 @@ enum PentestCommands {
         #[arg(long)]
         grade: bool,
     },
+    /// Subdomain enumeration (wordlist based)
+    SubEnum {
+        /// Target domain (e.g., example.com)
+        domain: String,
+    },
 }
 
 #[tokio::main]
@@ -49,6 +55,9 @@ async fn main() -> anyhow::Result<()> {
             PentestCommands::SslCheck { host, grade } => {
                 println!("{} Analyzing SSL/TLS for {}...", "ℹ".blue(), host.bold());
                 ssl_check::run_analysis(&host, grade).await?;
+            }
+            PentestCommands::SubEnum { domain } => {
+                subdomain::run_sub_enum(&domain).await?;
             }
         },
         Commands::WebUi { port } => {
