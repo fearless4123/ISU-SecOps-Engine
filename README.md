@@ -73,5 +73,5 @@ Daha detaylı bilgi için `docs/` klasöründeki dosyaları inceleyebilirsiniz:
 Bu proje MIT Lisansı altında lisanslanmıştır. Daha fazla bilgi için `LICENSE` dosyasına bakın.
 
 ---
-**Developed by Aegis Security Team.**
+**Developed by Yağız Genç.**
 *"Securing the web, one handshake at a time."*
