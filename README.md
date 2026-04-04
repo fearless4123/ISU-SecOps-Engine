@@ -7,52 +7,51 @@
 
 **ISU SecOps Engine**, modern web altyapıları için geliştirilmiş, yüksek performanslı ve asenkron bir SSL/TLS güvenlik denetim motorudur. Basit bir sertifika tarayıcısından öte, kurumsal düzeyde uyumluluk analizi (Compliance), aktif zafiyet taraması ve küresel istihbarat özellikleri sunar.
 
----
+# 🛡️ ISU SecOps Engine
+**Professional SSL/TLS Security Auditor & Pentest Engine**
 
-## 🚀 Öne Çıkan Özellikler (Key Features)
-
-- **🔍 Derinlikli Analiz**: RSA/ECDSA anahtar gücü, imza algoritmaları ve SAN kontrolleri.
-- **🛡️ Zafiyet Taraması**: Heartbleed, POODLE ve Logjam gibi eksik yapılandırmaları anında tespit eder.
-- **🌐 Global Intelligence**: Sunucunun IP tabanlı fiziksel konumu (Geo-IP), ISP bilgisi ve ASN analizi.
-- **📋 Uyumluluk (Compliance)**: HSTS, CSP, X-Frame-Options ve DNS CAA kayıtları denetimi.
-- **🌳 Trust Chain**: Sertifika güven zincirini (Root -> Intermediate -> Leaf) hiyerarşik olarak görselleştirir.
-- **💎 Premium Dashboard**: Glassmorphism arayüzü ile gerçek zamanlı, canlı analiz sonuçları.
-- **📄 Raporlama**: CLI üzerinden JSON ve Web üzerinden Print-to-PDF formatında profesyonel çıktılar.
+The ISU SecOps Engine is a high-performance terminal utility written in Rust, designed for deep security auditing of SSL/TLS configurations. It provides instant visibility into certificate health, protocol vulnerabilities (POODLE, SSLv3), and global server intelligence.
 
 ---
 
-## 🛠️ Kurulum (Installation)
+## 🚀 Speedrun: No-EXE Usage
+This tool is designed to be run directly via the Rust toolchain for maximum transparency and performance.
 
-Sistemi derlemek için **Rust**, **Visual Studio Build Tools** (Windows) ve **Strawberry Perl** yüklü olmalıdır.
+### 1. Audit a Single Host
+```bash
+cargo run -- google.com --grade
+```
+*Gives you a full intelligence report, certificate analysis, and a security grade (A-F).*
 
-```powershell
-# Projeyi klonlayın
-git clone https://github.com/isu/secops-engine.git
+### 2. Batch Audit (Multiple Hosts)
+Prepare a `targets.txt` file with one domain per line, then run:
+```bash
+cargo run -- --file targets.txt --grade
+```
 
-# Bağımlılıkları yükleyin ve derleyin
-cargo build --release
+### 3. Enumerate Cipher Suites
+To perform an active probe of all supported encryption algorithms:
+```bash
+cargo run -- google.com --ciphers
 ```
 
 ---
 
-## 📖 Kullanım Klavuzu (Usage Guide)
+## 📊 Key Features
+- **Global Intel:** Detects Server IP, ISP, and ASN physical location.
+- **Vulnerability Probing:** Active checks for SSLv3 and deprecated protocols.
+- **CT Log Verification:** Checks if certificates are properly logged in Certificate Transparency.
+- **Professional Repoting:** Outputs structured, colored tables and optional JSON exports.
+- **Grade System:** Industry-standard A+ to F grading based on security posture.
 
-### 💻 Command Line Interface (CLI)
-Kurumsal denetimler için terminali kullanın:
+---
 
-```powershell
-# Tekil bir domaini tüm detaylarıyla tara
-./secops.exe pentest ssl-check google.com --grade --ciphers
+## 🛠️ Requirements
+- [Rust & Cargo](https://rust-app.org/learn/get-started) (Latest stable)
+- OpenSSL Development headers
 
-# Çoklu hedef (Wordlist) kullanarak toplu tarama yap
-./secops.exe pentest ssl-check --file targets.txt --json reports/
-
-# Web Arayüzünü başlat
-./secops.exe web-ui --port 8080
-```
-
-### 🎨 Web Dashboard
-Tarayıcınızda `http://localhost:8080` adresine giderek, el sıkışma metriklerinden güven zinciri ağacına kadar her şeyi canlı olarak takip edin.
+---
+*Developed by Antigravity Security - Optimized for terminal-native workflows.*
 
 ---
 

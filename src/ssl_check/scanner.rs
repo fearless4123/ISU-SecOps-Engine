@@ -10,11 +10,18 @@ use trust_dns_resolver::config::*;
 use trust_dns_resolver::proto::rr::RecordType;
 use std::collections::HashMap;
 use tokio::net::lookup_host;
+use indicatif::{ProgressBar, ProgressStyle};
+use colored::*;
 
 pub async fn perform_analysis(host: &str, probe_ciphers: bool) -> Result<SslAnalysis> {
+    let pb = ProgressBar::new_spinner();
+    pb.set_style(ProgressStyle::default_spinner().template("{spinner:.green} {msg}").unwrap());
+    pb.enable_steady_tick(std::time::Duration::from_millis(100));
+
     let mut analysis = SslAnalysis { host: host.to_string(), certificate: None, cert_chain: Vec::new(), tls_versions: Vec::new(), supported_ciphers: Vec::new(), caa_records: Vec::new(), vulnerabilities: Vec::new(), geo_info: None, grade: "F".to_string() };
     
     // 1. IP & Geo Intelligence
+    pb.set_message(format!("📡 Gathering intel for {}...", host.bold()));
     if let Ok(mut addrs) = lookup_host(format!("{}:443", host)).await {
         if let Some(addr) = addrs.next() {
             let ip = addr.ip().to_string();
@@ -23,10 +30,12 @@ pub async fn perform_analysis(host: &str, probe_ciphers: bool) -> Result<SslAnal
     }
 
     // 2. Certificate & Chain
+    pb.set_message("📜 Extracting SSL/TLS Certificate...");
     let (cert_res, chain) = match get_certificate_with_chain(host, true) { Ok(res) => res, Err(_) => get_certificate_with_chain(host, false).unwrap_or((None, Vec::new())) };
     analysis.cert_chain = chain;
     
     // 3. Security Headers
+    pb.set_message("🛡️  Auditing Security Headers (HSTS, CSP)...");
     let security_headers = audit_security_headers(host).await.unwrap_or_default();
     
     if let Some(mut c) = cert_res {
@@ -37,13 +46,23 @@ pub async fn perform_analysis(host: &str, probe_ciphers: bool) -> Result<SslAnal
     }
 
     // 4. Protocols & Vulns
+    pb.set_message("🧪 Probing Protocol Versions (TLS 1.0 - 1.3)...");
     let versions = [(SslVersion::TLS1, "TLS 1.0"), (SslVersion::TLS1_1, "TLS 1.1"), (SslVersion::TLS1_2, "TLS 1.2"), (SslVersion::TLS1_3, "TLS 1.3")];
     for (ver, name) in versions { let supported = probe_version(host, ver).is_ok(); analysis.tls_versions.push(TlsVersionInfo { version: name.to_string(), supported }); }
     if probe_version(host, SslVersion::SSL3).is_ok() { analysis.vulnerabilities.push("POODLE (SSLv3 Support)".to_string()); }
 
-    if probe_ciphers { analysis.supported_ciphers = probe_all_ciphers(host).await?; }
+    if probe_ciphers {
+        pb.set_message("🕵️  Enumerating Cipher Suites (Active Probing)...");
+        analysis.supported_ciphers = probe_all_ciphers(host).await?; 
+    }
+    
+    pb.set_message("🔍 Checking DNS CAA Records...");
     analysis.caa_records = check_caa_records(host).await.unwrap_or_default();
+    
+    pb.set_message("📊 Calculating Security Grade...");
     analysis.grade = calculate_grade(&analysis);
+    
+    pb.finish_and_clear();
     Ok(analysis)
 }
 
