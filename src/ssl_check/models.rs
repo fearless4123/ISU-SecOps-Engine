@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CipherInfo {
     pub name: String,
-    pub strength: String, // "SECURE", "WEAK", "INSECURE"
+    pub strength: String,
     pub recommendation: Option<String>,
 }
 
@@ -33,5 +33,6 @@ pub struct SslAnalysis {
     pub certificate: Option<CertInfo>,
     pub tls_versions: Vec<TlsVersionInfo>,
     pub supported_ciphers: Vec<CipherInfo>,
+    pub caa_records: Vec<String>,
     pub grade: String,
 }

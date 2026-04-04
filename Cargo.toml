@@ -17,3 +17,4 @@ axum = "0.7.4"
 tower-http = { version = "0.5.1", features = ["fs", "cors"] }
 rust-embed = "8.2.0"
 reqwest = { version = "0.11", features = ["json", "rustls-tls"] }
+trust-dns-resolver = "0.23"

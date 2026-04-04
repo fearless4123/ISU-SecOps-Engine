@@ -27,9 +27,16 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> 
                     "EXPIRED/INVALID".red().bold()
                 };
                 println!("{:<20}: {}", "Status".yellow(), validity);
+            }
 
-                println!("\n{}", "--- Connection Details ---".bold().cyan());
-                println!("{:<20}: {}", "Cipher Suite".yellow(), cert.cipher_suite.bold().blue());
+            println!("\n{}", "--- DNS Security & Compliance ---".bold().cyan());
+            if analysis.caa_records.is_empty() {
+                println!("{:<20}: {}", "CAA Records".yellow(), "NONE (Insecure/No Policy)".red());
+            } else {
+                println!("{:<20}:", "CAA Records".yellow());
+                for caa in analysis.caa_records {
+                    println!("  ┗━ {}", caa.green());
+                }
             }
 
             println!("\n{}", "--- TLS Protocol Support ---".bold().cyan());
