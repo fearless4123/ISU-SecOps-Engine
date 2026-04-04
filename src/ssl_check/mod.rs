@@ -5,8 +5,8 @@ use anyhow::Result;
 pub mod models;
 pub mod scanner;
 
-pub async fn run_analysis(host: &str, show_grade: bool) -> Result<()> {
-    match perform_analysis(host).await {
+pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> Result<()> {
+    match perform_analysis(host, probe_ciphers).await {
         Ok(analysis) => {
             println!("\n{}", "--- Certificate Information ---".bold().cyan());
             if let Some(cert) = analysis.certificate {
@@ -30,8 +30,6 @@ pub async fn run_analysis(host: &str, show_grade: bool) -> Result<()> {
 
                 println!("\n{}", "--- Connection Details ---".bold().cyan());
                 println!("{:<20}: {}", "Cipher Suite".yellow(), cert.cipher_suite.bold().blue());
-            } else {
-                println!("{}", "No certificate information available.".red());
             }
 
             println!("\n{}", "--- TLS Protocol Support ---".bold().cyan());
@@ -44,13 +42,32 @@ pub async fn run_analysis(host: &str, show_grade: bool) -> Result<()> {
                 println!("{:<20}: {}", tv.version.yellow(), status);
             }
 
+            if !analysis.supported_ciphers.is_empty() {
+                println!("\n{}", "--- Enumerated Cipher Suites ---".bold().cyan());
+                for cipher in analysis.supported_ciphers {
+                    let strength_color = match cipher.strength.as_str() {
+                        "SECURE" => cipher.name.green(),
+                        "WEAK" => cipher.name.yellow(),
+                        "INSECURE" => cipher.name.red().bold(),
+                        _ => cipher.name.white(),
+                    };
+                    println!("{} [Strength: {}]", strength_color, cipher.strength);
+                    if let Some(rec) = cipher.recommendation {
+                        println!("   ┗━ {}", rec.dimmed().italic());
+                    }
+                }
+            }
+
             if show_grade {
                 println!("\n{}", "--- Security Grade ---".bold().cyan());
-                let grade_color = match analysis.grade.chars().next().unwrap_or('F') {
-                    'A' => analysis.grade.green().bold(),
-                    'B' => analysis.grade.blue().bold(),
-                    'C' => analysis.grade.yellow().bold(),
-                    _ => analysis.grade.red().bold(),
+                let grade_color = if analysis.grade.starts_with('A') {
+                    analysis.grade.green().bold()
+                } else if analysis.grade.starts_with('B') {
+                    analysis.grade.blue().bold()
+                } else if analysis.grade.starts_with('C') {
+                    analysis.grade.yellow().bold()
+                } else {
+                    analysis.grade.red().bold()
                 };
                 println!("Grade: {}", grade_color);
             }

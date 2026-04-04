@@ -37,6 +37,10 @@ enum PentestCommands {
         /// Calculate and display security grade (A-F)
         #[arg(long)]
         grade: bool,
+
+        /// Enumerate all supported cipher suites
+        #[arg(long)]
+        ciphers: bool,
     },
 }
 
@@ -46,9 +50,9 @@ async fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Pentest { action } => match action {
-            PentestCommands::SslCheck { host, grade } => {
+            PentestCommands::SslCheck { host, grade, ciphers } => {
                 println!("{} Analyzing SSL/TLS for {}...", "ℹ".blue(), host.bold());
-                ssl_check::run_analysis(&host, grade).await?;
+                ssl_check::run_analysis(&host, grade, ciphers).await?;
             }
         },
         Commands::WebUi { port } => {

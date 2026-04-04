@@ -1,6 +1,6 @@
 use axum::{
     extract::Query,
-    http::{header, StatusCode},
+    http::StatusCode,
     response::{Html, IntoResponse, Response},
     routing::get,
     Json, Router,
@@ -39,7 +39,8 @@ async fn index_handler() -> impl IntoResponse {
 }
 
 async fn ssl_scan_handler(Query(params): Query<ScanParams>) -> Response {
-    match perform_analysis(&params.host).await {
+    // For the Web UI, we always perform the full audit including cipher probing
+    match perform_analysis(&params.host, true).await {
         Ok(analysis) => Json(analysis).into_response(),
         Err(e) => {
             (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))).into_response()
