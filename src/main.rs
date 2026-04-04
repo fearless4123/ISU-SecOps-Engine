@@ -5,6 +5,7 @@ mod ssl_check;
 mod web_ui;
 mod subdomain;
 mod http_audit;
+mod port_scan;
 
 #[derive(Parser)]
 #[command(name = "secops")]
@@ -50,6 +51,11 @@ enum PentestCommands {
         /// Target URL (e.g., https://google.com)
         url: String,
     },
+    /// Port scanning and service discovery
+    PortScan {
+        /// Target host (e.g., 127.0.0.1)
+        host: String,
+    },
 }
 
 #[tokio::main]
@@ -67,6 +73,9 @@ async fn main() -> anyhow::Result<()> {
             }
             PentestCommands::HttpHeaders { url } => {
                 http_audit::run_http_audit(&url).await?;
+            }
+            PentestCommands::PortScan { host } => {
+                port_scan::run_port_scan(&host).await?;
             }
         },
         Commands::WebUi { port } => {
