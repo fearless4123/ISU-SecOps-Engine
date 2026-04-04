@@ -1,58 +1,71 @@
-use crate::ssl_check::models::{CertInfo, SslAnalysis, TlsVersionInfo, CipherInfo};
+use crate::ssl_check::models::{CertInfo, SslAnalysis, TlsVersionInfo, CipherInfo, GeoInfo};
 use anyhow::{anyhow, Result};
 use chrono::{Utc, TimeZone};
 use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode, SslVersion};
 use std::net::TcpStream;
 use x509_parser::prelude::*;
-use x509_parser::extensions::{GeneralName, ParsedExtension};
-use x509_parser::public_key::PublicKey;
 use std::time::Duration;
 use trust_dns_resolver::TokioAsyncResolver;
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::proto::rr::RecordType;
 use std::collections::HashMap;
+use tokio::net::lookup_host;
 
 pub async fn perform_analysis(host: &str, probe_ciphers: bool) -> Result<SslAnalysis> {
-    let mut analysis = SslAnalysis { host: host.to_string(), certificate: None, cert_chain: Vec::new(), tls_versions: Vec::new(), supported_ciphers: Vec::new(), caa_records: Vec::new(), vulnerabilities: Vec::new(), grade: "F".to_string() };
+    let mut analysis = SslAnalysis { host: host.to_string(), certificate: None, cert_chain: Vec::new(), tls_versions: Vec::new(), supported_ciphers: Vec::new(), caa_records: Vec::new(), vulnerabilities: Vec::new(), geo_info: None, grade: "F".to_string() };
+    
+    // 1. IP & Geo Intelligence
+    if let Ok(mut addrs) = lookup_host(format!("{}:443", host)).await {
+        if let Some(addr) = addrs.next() {
+            let ip = addr.ip().to_string();
+            analysis.geo_info = fetch_geo_info(&ip).await.ok();
+        }
+    }
+
+    // 2. Certificate & Chain
     let (cert_res, chain) = match get_certificate_with_chain(host, true) { Ok(res) => res, Err(_) => get_certificate_with_chain(host, false).unwrap_or((None, Vec::new())) };
     analysis.cert_chain = chain;
-    let versions = [(SslVersion::TLS1, "TLS 1.0"), (SslVersion::TLS1_1, "TLS 1.1"), (SslVersion::TLS1_2, "TLS 1.2"), (SslVersion::TLS1_3, "TLS 1.3")];
-    for (ver, name) in versions { let supported = probe_version(host, ver).is_ok(); analysis.tls_versions.push(TlsVersionInfo { version: name.to_string(), supported }); }
     
-    // Vulnerability Probes
-    if probe_version(host, SslVersion::SSL3).is_ok() { analysis.vulnerabilities.push("POODLE (SSLv3 Support Detected)".to_string()); }
-    if probe_heartbleed(host).is_ok() { analysis.vulnerabilities.push("Insecure Heartbeat Extension Detected".to_string()); }
-    if probe_export_ciphers(host).is_ok() { analysis.vulnerabilities.push("FREAK/Logjam (Export Ciphers Support)".to_string()); }
-
+    // 3. Security Headers
     let security_headers = audit_security_headers(host).await.unwrap_or_default();
+    
     if let Some(mut c) = cert_res {
         c.hsts_enabled = security_headers.contains_key("Strict-Transport-Security");
         c.security_headers = security_headers;
         c.revocation_status = if c.revocation_status == "Unknown" { "Good".to_string() } else { c.revocation_status }; 
         analysis.certificate = Some(c);
     }
+
+    // 4. Protocols & Vulns
+    let versions = [(SslVersion::TLS1, "TLS 1.0"), (SslVersion::TLS1_1, "TLS 1.1"), (SslVersion::TLS1_2, "TLS 1.2"), (SslVersion::TLS1_3, "TLS 1.3")];
+    for (ver, name) in versions { let supported = probe_version(host, ver).is_ok(); analysis.tls_versions.push(TlsVersionInfo { version: name.to_string(), supported }); }
+    if probe_version(host, SslVersion::SSL3).is_ok() { analysis.vulnerabilities.push("POODLE (SSLv3 Support)".to_string()); }
+
     if probe_ciphers { analysis.supported_ciphers = probe_all_ciphers(host).await?; }
     analysis.caa_records = check_caa_records(host).await.unwrap_or_default();
     analysis.grade = calculate_grade(&analysis);
     Ok(analysis)
 }
 
-fn probe_heartbleed(host: &str) -> Result<()> {
-    let mut builder = SslConnector::builder(SslMethod::tls())?;
-    builder.set_verify(SslVerifyMode::NONE);
-    // There is no easy way in openssl crate to only "probe" for heartbeat without advanced options
-    // We return Err to keep it clean unless we find a specific indicator
-    Err(anyhow!("Not Vulnerable"))
-}
-
-fn probe_export_ciphers(host: &str) -> Result<()> {
-    let mut builder = SslConnector::builder(SslMethod::tls())?;
-    builder.set_cipher_list("EXPORT")?;
-    builder.set_verify(SslVerifyMode::NONE);
-    let conn = builder.build();
-    let stream = TcpStream::connect(format!("{}:443", host))?;
-    conn.connect(host, stream).map_err(|e| anyhow!("Fail: {}", e))?;
-    Ok(())
+async fn fetch_geo_info(ip: &str) -> Result<GeoInfo> {
+    let client = reqwest::Client::builder().timeout(Duration::from_secs(3)).build()?;
+    let url = format!("http://ip-api.com/json/{}?fields=status,message,country,countryCode,regionName,city,isp,org,as,query", ip);
+    let res = client.get(&url).send().await?.json::<serde_json::Value>().await?;
+    
+    if res["status"] == "success" {
+        Ok(GeoInfo {
+            country: res["country"].as_str().unwrap_or("Unknown").to_string(),
+            country_code: res["countryCode"].as_str().unwrap_or("??").to_string(),
+            region_name: res["regionName"].as_str().unwrap_or("Unknown").to_string(),
+            city: res["city"].as_str().unwrap_or("Unknown").to_string(),
+            isp: res["isp"].as_str().unwrap_or("Unknown ISP").to_string(),
+            org: res["org"].as_str().unwrap_or("Unknown Org").to_string(),
+            as_num: res["as"].as_str().unwrap_or("Unknown AS").to_string(),
+            query: ip.to_string(),
+        })
+    } else {
+        Err(anyhow!("Geo-IP lookup failed"))
+    }
 }
 
 fn get_certificate_with_chain(host: &str, verify: bool) -> Result<(Option<CertInfo>, Vec<String>)> {
@@ -61,15 +74,24 @@ fn get_certificate_with_chain(host: &str, verify: bool) -> Result<(Option<CertIn
     let conn = builder.build();
     let stream = TcpStream::connect(format!("{}:443", host))?;
     let ssl = conn.connect(host, stream).map_err(|e| anyhow!("Handshake failed: {}", e))?;
+    
     let cert = ssl.ssl().peer_certificate().ok_or_else(|| anyhow!("No cert"))?;
     let mut chain_names = Vec::new();
     if let Some(chain) = ssl.ssl().peer_cert_chain() {
-        for c in chain { if let Ok(name) = c.subject_name().entries().next().ok_or(anyhow!("None")).and_then(|e| e.data().as_utf8().map(|s| s.to_string()).map_err(|_| anyhow!("UTF8"))) { chain_names.push(name); } }
+        for c in chain { if let Ok(name) = c.subject_name().entries().next().ok_or(anyhow!("None")).and_then(|e| e.data().as_utf8().map(|s| s.to_string()).map_err(|_| anyhow!("Utf8"))) { chain_names.push(name); } }
     }
+
     let der = cert.to_der()?;
-    let (_, x509) = X509Certificate::from_der(&der).map_err(|_| anyhow!("Parse error"))?;
+    let (_, x509) = X509Certificate::from_der(&der).map_err(|_| anyhow!("Parse err"))?;
     let common_name = x509.subject().iter_common_name().next().map(|attr| attr.as_str().unwrap_or_default().to_string()).unwrap_or_else(|| "Unknown".to_string());
-    Ok((Some(CertInfo { common_name, subject_alt_names: Vec::new(), issuer: "Unknown".to_string(), not_before: "".to_string(), not_after: "".to_string(), is_valid: verify, key_info: "".to_string(), signature_algorithm: "".to_string(), cipher_suite: "".to_string(), hsts_enabled: false, revocation_status: "Unknown".to_string(), security_headers: HashMap::new() }), chain_names))
+    
+    // CT Log Check
+    let mut ct_logged = false;
+    for ext in x509.extensions() {
+        if ext.oid.to_string() == "1.3.6.1.4.1.11129.2.4.2" { ct_logged = true; break; }
+    }
+
+    Ok((Some(CertInfo { common_name, subject_alt_names: Vec::new(), issuer: "Unknown".to_string(), not_before: "".to_string(), not_after: "".to_string(), is_valid: verify, key_info: "".to_string(), signature_algorithm: "".to_string(), cipher_suite: "".to_string(), hsts_enabled: false, revocation_status: "Unknown".to_string(), security_headers: HashMap::new(), ct_logged }), chain_names))
 }
 
 async fn audit_security_headers(host: &str) -> Result<HashMap<String, String>> {
@@ -118,9 +140,9 @@ fn probe_version(host: &str, version: SslVersion) -> Result<()> {
 }
 
 fn calculate_grade(analysis: &SslAnalysis) -> String {
-    let cert_valid = analysis.certificate.as_ref().map(|c| c.is_valid).unwrap_or(false);
-    if !cert_valid { return "F (Cert Invalid)".to_string(); }
-    if !analysis.vulnerabilities.is_empty() { return "F (Active Vulnerabilities)".to_string(); }
+    let cert_ok = analysis.certificate.as_ref().map(|c| c.is_valid).unwrap_or(false);
+    if !cert_ok { return "F (Cert Invalid)".to_string(); }
+    if !analysis.vulnerabilities.is_empty() { return "F (Vulns)".to_string(); }
     let has_tls13 = analysis.tls_versions.iter().any(|v| v.version == "TLS 1.3" && v.supported);
     let headers = analysis.certificate.as_ref().map(|c| &c.security_headers);
     let hsts = headers.map(|h| h.contains_key("Strict-Transport-Security")).unwrap_or(false);

@@ -9,6 +9,18 @@ pub struct CipherInfo {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GeoInfo {
+    pub country: String,
+    pub country_code: String,
+    pub region_name: String,
+    pub city: String,
+    pub isp: String,
+    pub org: String,
+    pub as_num: String,
+    pub query: String, // IP Address
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CertInfo {
     pub common_name: String,
     pub subject_alt_names: Vec<String>,
@@ -22,6 +34,7 @@ pub struct CertInfo {
     pub hsts_enabled: bool,
     pub revocation_status: String,
     pub security_headers: HashMap<String, String>,
+    pub ct_logged: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -39,5 +52,6 @@ pub struct SslAnalysis {
     pub supported_ciphers: Vec<CipherInfo>,
     pub caa_records: Vec<String>,
     pub vulnerabilities: Vec<String>,
+    pub geo_info: Option<GeoInfo>,
     pub grade: String,
 }
