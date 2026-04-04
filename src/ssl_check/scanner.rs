@@ -11,22 +11,60 @@ use trust_dns_resolver::TokioAsyncResolver;
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::proto::rr::RecordType;
 use trust_dns_resolver::lookup::Lookup;
+use std::collections::HashMap;
 
 pub async fn perform_analysis(host: &str, probe_ciphers: bool) -> Result<SslAnalysis> {
     let mut analysis = SslAnalysis { host: host.to_string(), certificate: None, tls_versions: Vec::new(), supported_ciphers: Vec::new(), caa_records: Vec::new(), grade: "F".to_string() };
+    
+    // 1. Protocols
     let versions = [(SslVersion::TLS1, "TLS 1.0"), (SslVersion::TLS1_1, "TLS 1.1"), (SslVersion::TLS1_2, "TLS 1.2"), (SslVersion::TLS1_3, "TLS 1.3")];
     for (ver, name) in versions { let supported = probe_version(host, ver).is_ok(); analysis.tls_versions.push(TlsVersionInfo { version: name.to_string(), supported }); }
+    
+    // 2. Certificate
     let (cert_opt, chain_valid) = match get_certificate(host, true) { Ok(c) => (Some(c), true), Err(_) => { match get_certificate(host, false) { Ok(c) => (Some(c), false), Err(_) => (None, false) } } };
-    let hsts_enabled = check_hsts(host).await.unwrap_or(false);
+    
+    // 3. Security Headers Audit
+    let security_headers = audit_security_headers(host).await.unwrap_or_default();
+    let hsts_enabled = security_headers.contains_key("Strict-Transport-Security");
+
     if let Some(mut c) = cert_opt {
-        c.is_valid = c.is_valid && chain_valid; c.hsts_enabled = hsts_enabled;
+        c.is_valid = c.is_valid && chain_valid;
+        c.hsts_enabled = hsts_enabled;
+        c.security_headers = security_headers;
         c.revocation_status = if c.revocation_status == "Unknown" { "Good (Not Revoked)".to_string() } else { c.revocation_status }; 
         analysis.certificate = Some(c);
     }
+
+    // 4. Ciphers
     if probe_ciphers { analysis.supported_ciphers = probe_all_ciphers(host).await?; }
+    
+    // 5. DNS
     analysis.caa_records = check_caa_records(host).await.unwrap_or_default();
+    
+    // 6. Grade
     analysis.grade = calculate_grade(&analysis);
     Ok(analysis)
+}
+
+async fn audit_security_headers(host: &str) -> Result<HashMap<String, String>> {
+    let client = reqwest::Client::builder().timeout(Duration::from_secs(5)).danger_accept_invalid_certs(true).build()?;
+    let url = format!("https://{}", host);
+    let res = client.get(&url).send().await?;
+    let headers = res.headers();
+    
+    let mut audit = HashMap::new();
+    let target_headers = vec![
+        "Strict-Transport-Security", "Content-Security-Policy", "X-Frame-Options",
+        "X-Content-Type-Options", "Referrer-Policy", "Permissions-Policy"
+    ];
+    
+    for header in target_headers {
+        if let Some(val) = headers.get(header) {
+            audit.insert(header.to_string(), val.to_str().unwrap_or("Present (Invalid Data)").to_string());
+        }
+    }
+    
+    Ok(audit)
 }
 
 async fn check_caa_records(host: &str) -> Result<Vec<String>> {
@@ -61,14 +99,6 @@ fn probe_specific_cipher(host: &str, cipher: &str) -> Result<()> {
     let stream = TcpStream::connect(format!("{}:443", host))?;
     connector.connect(host, stream).map_err(|e| anyhow!("Handshake failed: {}", e))?;
     Ok(())
-}
-
-async fn check_hsts(host: &str) -> Result<bool> {
-    let client = reqwest::Client::builder().timeout(Duration::from_secs(5)).danger_accept_invalid_certs(true).build()?;
-    let url = format!("https://{}", host);
-    let res = client.get(&url).send().await?;
-    let headers = res.headers();
-    Ok(headers.contains_key("Strict-Transport-Security"))
 }
 
 fn probe_version(host: &str, version: SslVersion) -> Result<()> {
@@ -116,7 +146,6 @@ fn get_certificate(host: &str, verify: bool) -> Result<CertInfo> {
             let extension = ext.parsed_extension();
             if let ParsedExtension::AuthorityInfoAccess(aia) = extension {
                 for access in &aia.accessdescs {
-                    // Manual OID check for OCSP (1.3.6.1.5.5.7.48.1)
                     if format!("{}", access.access_method) == "1.3.6.1.5.5.7.48.1" {
                         revocation_status = "Available (Verified)".to_string();
                     }
@@ -125,7 +154,7 @@ fn get_certificate(host: &str, verify: bool) -> Result<CertInfo> {
         }
     }
 
-    Ok(CertInfo { common_name, subject_alt_names: san, issuer, not_before: not_before.to_rfc3339(), not_after: not_after.to_rfc3339(), is_valid: true, key_info, signature_algorithm, cipher_suite, hsts_enabled: false, revocation_status })
+    Ok(CertInfo { common_name, subject_alt_names: san, issuer, not_before: not_before.to_rfc3339(), not_after: not_after.to_rfc3339(), is_valid: true, key_info, signature_algorithm, cipher_suite, hsts_enabled: false, revocation_status, security_headers: HashMap::new() })
 }
 
 fn calculate_grade(analysis: &SslAnalysis) -> String {
@@ -133,14 +162,22 @@ fn calculate_grade(analysis: &SslAnalysis) -> String {
     let has_tls12 = analysis.tls_versions.iter().any(|v| v.version == "TLS 1.2" && v.supported);
     let has_legacy = analysis.tls_versions.iter().any(|v| (v.version == "TLS 1.0" || v.version == "TLS 1.1") && v.supported);
     let cert_valid = analysis.certificate.as_ref().map(|c| c.is_valid).unwrap_or(false);
-    let hsts = analysis.certificate.as_ref().map(|c| c.hsts_enabled).unwrap_or(false);
+    
+    let headers = analysis.certificate.as_ref().map(|c| &c.security_headers);
+    let hsts = headers.map(|h| h.contains_key("Strict-Transport-Security")).unwrap_or(false);
+    let has_csp = headers.map(|h| h.contains_key("Content-Security-Policy")).unwrap_or(false);
+    let has_xframe = headers.map(|h| h.contains_key("X-Frame-Options")).unwrap_or(false);
+
     let has_insecure_cipher = analysis.supported_ciphers.iter().any(|c| c.strength == "INSECURE");
     let has_weak_cipher = analysis.supported_ciphers.iter().any(|c| c.strength == "WEAK");
     let has_caa = !analysis.caa_records.is_empty();
+    
     if !cert_valid { return "F (Certificate Invalid)".to_string(); }
     if has_insecure_cipher { return "F (Insecure Ciphers Support)".to_string(); }
     if has_weak_cipher || has_legacy { return "B (Legacy Support)".to_string(); }
-    if has_tls13 && hsts && has_caa { return "A+".to_string(); }
-    if has_tls12 || has_tls13 { return "A".to_string(); }
+    
+    if has_tls13 && hsts && has_caa && has_csp && has_xframe { return "A+".to_string(); }
+    if has_tls13 && hsts && has_caa { return "A".to_string(); }
+    if has_tls12 || has_tls13 { return "A- (Missing Advanced Compliance)".to_string(); }
     "C".to_string()
 }

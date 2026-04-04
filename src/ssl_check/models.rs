@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CipherInfo {
@@ -20,6 +21,7 @@ pub struct CertInfo {
     pub cipher_suite: String,
     pub hsts_enabled: bool,
     pub revocation_status: String,
+    pub security_headers: HashMap<String, String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

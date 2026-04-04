@@ -39,6 +39,22 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool, jso
                 println!("{:<20}: {}", "Status".yellow(), validity);
             }
 
+            println!("\n{}", "--- Security Headers Audit ---".bold().cyan());
+            if let Some(ref cert) = analysis.certificate {
+                let target_headers = vec![
+                    "Content-Security-Policy", "X-Frame-Options",
+                    "X-Content-Type-Options", "Referrer-Policy", "Permissions-Policy"
+                ];
+                for header in target_headers {
+                    let status = if let Some(val) = cert.security_headers.get(header) {
+                        format!("{} ({})", "PRESENT".green().bold(), val.dimmed())
+                    } else {
+                        "MISSING".red().to_string()
+                    };
+                    println!("{:<25}: {}", header.yellow(), status);
+                }
+            }
+
             println!("\n{}", "--- DNS Security & Compliance ---".bold().cyan());
             if analysis.caa_records.is_empty() {
                 println!("{:<20}: {}", "CAA Records".yellow(), "NONE (Insecure/No Policy)".red());

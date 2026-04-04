@@ -45,10 +45,14 @@
         .info-value { font-size: 1rem; font-weight: 600; word-break: break-all; }
 
         .grade-highlight { font-size: 6rem; font-weight: 900; background: linear-gradient(to bottom, #fff, var(--text-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 1.5rem 0; line-height: 1; }
-        .status-pill { display: inline-block; padding: 0.375rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; margin-top: 0.25rem; }
+        .status-pill { display: inline-block; padding: 0.375rem 0.75rem; border-radius: 0.6rem; font-size: 0.7rem; font-weight: 700; margin-top: 0.25rem; }
         .pill-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
         .pill-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
         .pill-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .header-matrix { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+        .header-name { font-size: 0.85rem; color: var(--text-secondary); }
 
         .cipher-list { list-style: none; margin-top: 1rem; }
         .cipher-item { padding: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.25rem; }
@@ -60,13 +64,11 @@
         
         .action-bar { display: none; margin-top: 2rem; justify-content: flex-end; }
         .action-bar.active { display: flex; }
-        
         .btn-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-primary); }
 
         @keyframes spin { to { transform: rotate(360deg); } }
         .error-box { display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger); padding: 1.5rem; border-radius: 1.25rem; margin-bottom: 2rem; text-align: center; }
 
-        /* Print Optimized Styles */
         @media print {
             body { background: #fff !important; color: #000 !important; }
             .search-container, header, .action-bar, .loader, .error-box { display: none !important; }
@@ -102,7 +104,18 @@
             </div>
 
             <div class="card">
-                <h3>Certification & Compliance</h3>
+                <h3>Compliance & Headers</h3>
+                <div class="header-matrix" id="headerList">
+                    <!-- Matrix will be populated here -->
+                </div>
+                <div class="info-item" style="margin-top: 2rem;">
+                    <div class="info-label">DNS CAA Records</div>
+                    <div id="resCAAList" style="margin-top: 0.5rem;"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Certificate Details</h3>
                 <div class="info-item">
                     <div class="info-label">Common Name</div>
                     <div class="info-value" id="resCN">-</div>
@@ -111,26 +124,10 @@
                     <div class="info-label">Revocations (OCSP)</div>
                     <div id="resOCSP">-</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">DNS CAA Records</div>
-                    <div id="resCAAList" style="margin-top: 0.5rem;"></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">HSTS Status</div>
-                    <div id="resHSTS">-</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Protocols & Cipher Suites</h3>
-                <div id="protocolList" style="margin-bottom: 2rem;">
+                <div id="protocolList" style="margin-top: 1rem;">
                     <div class="info-row" style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
                         <span style="color:var(--text-secondary)">TLS 1.2</span>
                         <span id="resTLS12">-</span>
-                    </div>
-                    <div class="info-row" style="display:flex; justify-content:space-between;">
-                        <span style="color:var(--text-secondary)">TLS 1.3</span>
-                        <span id="resTLS13">-</span>
                     </div>
                 </div>
                 <div class="info-label">Enumerated Ciphers</div>
@@ -168,20 +165,30 @@
                 document.getElementById('resGrade').innerText = data.grade.split(' ')[0];
                 document.getElementById('resGradeDetail').innerText = data.grade;
 
+                const headerList = document.getElementById('headerList');
+                headerList.innerHTML = '';
+                const targetHeaders = [
+                    "Strict-Transport-Security", "Content-Security-Policy", 
+                    "X-Frame-Options", "X-Content-Type-Options", "Referrer-Policy"
+                ];
+
                 if (data.certificate) {
                     const cert = data.certificate;
                     document.getElementById('resCN').innerText = cert.common_name;
-                    document.getElementById('resHSTS').innerHTML = cert.hsts_enabled ? 
-                        '<span class="status-pill pill-success">HSTS ENABLED</span>' : '<span class="status-pill pill-danger">HSTS MISSING</span>';
-                    
                     document.getElementById('resOCSP').innerHTML = cert.revocation_status.includes('Good') || cert.revocation_status.includes('Available') ? 
                         `<span class="status-pill pill-success">${cert.revocation_status}</span>` : 
                         `<span class="status-pill pill-warning">${cert.revocation_status}</span>`;
 
+                    targetHeaders.forEach(h => {
+                        const row = document.createElement('div');
+                        row.className = 'header-row';
+                        const present = cert.security_headers && cert.security_headers[h];
+                        row.innerHTML = `<span class="header-name">${h}</span><span class="status-pill ${present ? 'pill-success' : 'pill-danger'}">${present ? 'PROTECTED' : 'MISSING'}</span>`;
+                        headerList.appendChild(row);
+                    });
+
                     const tls12 = data.tls_versions.find(v => v.version === 'TLS 1.2');
-                    const tls13 = data.tls_versions.find(v => v.version === 'TLS 1.3');
                     document.getElementById('resTLS12').innerHTML = tls12?.supported ? '<span style="color:var(--success)">SUPPORTED</span>' : '<span style="color:var(--danger)">NO</span>';
-                    document.getElementById('resTLS13').innerHTML = tls13?.supported ? '<span style="color:var(--success)">SUPPORTED</span>' : '<span style="color:var(--danger)">NO</span>';
                 }
 
                 const caaList = document.getElementById('resCAAList');
@@ -194,7 +201,7 @@
                         caaList.appendChild(div);
                     });
                 } else {
-                    caaList.innerHTML = '<span class="status-pill pill-warning">NO CAA POLICY FOUND</span>';
+                    caaList.innerHTML = '<span class="status-pill pill-warning">NO CAA POLICY</span>';
                 }
 
                 const cipherList = document.getElementById('resCipherList');
@@ -204,11 +211,9 @@
                         const item = document.createElement('div');
                         item.className = 'cipher-item';
                         const pillClass = cipher.strength === 'SECURE' ? 'pill-success' : (cipher.strength === 'WEAK' ? 'pill-warning' : 'pill-danger');
-                        item.innerHTML = `<div class="cipher-header"><span style="font-weight: 600; font-size: 0.875rem;">${cipher.name}</span><span class="status-pill ${pillClass}" style="font-size: 0.6rem; padding: 0.2rem 0.5rem;">${cipher.strength}</span></div>${cipher.recommendation ? `<div class="cipher-recommend">${cipher.recommendation}</div>` : ''}`;
+                        item.innerHTML = `<div class="cipher-header"><span style="font-weight: 600; font-size: 0.8rem;">${cipher.name}</span><span class="status-pill ${pillClass}" style="font-size: 0.6rem; padding: 0.2rem 0.5rem;">${cipher.strength}</span></div>`;
                         cipherList.appendChild(item);
                     });
-                } else {
-                    cipherList.innerHTML = '<div class="subtitle" style="text-align:center">No specific ciphers probed</div>';
                 }
 
                 dashboard.classList.add('active');
