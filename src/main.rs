@@ -9,6 +9,7 @@ mod port_scan;
 mod fuzzer;
 mod mail_audit;
 mod recon;
+mod cms;
 
 #[derive(Parser)]
 #[command(name = "secops")]
@@ -74,6 +75,11 @@ enum PentestCommands {
         /// Target domain or IP (e.g., google.com)
         target: String,
     },
+    /// CMS type and version detection
+    CmsDetect {
+        /// Target URL (e.g., https://wordpress.org)
+        url: String,
+    },
 }
 
 #[tokio::main]
@@ -103,6 +109,9 @@ async fn main() -> anyhow::Result<()> {
             }
             PentestCommands::Recon { target } => {
                 recon::run_recon_module(&target).await?;
+            }
+            PentestCommands::CmsDetect { url } => {
+                cms::run_cms_detect(&url).await?;
             }
         },
         Commands::WebUi { port } => {
