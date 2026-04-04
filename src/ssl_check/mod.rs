@@ -13,55 +13,61 @@ pub mod scanner;
 pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool, json_path: Option<String>) -> Result<()> {
     match perform_analysis(host, probe_ciphers).await {
         Ok(analysis) => {
-            println!("\n{}", format!("🛡️  ISU SecOps Engine - Audit Report: {}", host).bold().bright_cyan());
+            println!("\n{}", format!("🛡️  ISU SecOps Engine - Denetim Raporu: {}", host).bold().bright_cyan());
             
-            // 1. Intelligence Table
+            // 1. İstihbarat Tablosu
             let mut intel_table = Table::new();
             intel_table.load_preset(UTF8_FULL).apply_modifier(UTF8_ROUND_CORNERS)
-                .set_header(vec![Cell::new("Feature").add_attribute(Attribute::Bold).fg(Color::Cyan), Cell::new("Value").add_attribute(Attribute::Bold).fg(Color::Cyan)]);
+                .set_header(vec![
+                    Cell::new("Özellik").add_attribute(Attribute::Bold).fg(Color::Cyan), 
+                    Cell::new("Değer").add_attribute(Attribute::Bold).fg(Color::Cyan)
+                ]);
 
             if let Some(ref geo) = analysis.geo_info {
-                intel_table.add_row(vec!["Server IP", &geo.query]);
-                intel_table.add_row(vec!["Location", &format!("{}, {}", geo.city, geo.country)]);
-                intel_table.add_row(vec!["ISP / AS", &format!("{} ({})", geo.isp, geo.as_num)]);
+                intel_table.add_row(vec!["Sunucu IP", &geo.query]);
+                intel_table.add_row(vec!["Konum", &format!("{}, {}", geo.city, geo.country)]);
+                intel_table.add_row(vec!["Servis Sağlayıcı (ISP)", &format!("{} ({})", geo.isp, geo.as_num)]);
             }
-            println!("\n{}", "📡 GLOBAL INTELLIGENCE".bold().yellow());
+            println!("\n{}", "📡 KÜRESEL İSTİHBARAT".bold().yellow());
             println!("{intel_table}");
 
-            // 2. Certificate Table
+            // 2. Sertifika Tablosu
             let mut cert_table = Table::new();
             cert_table.load_preset(UTF8_FULL).apply_modifier(UTF8_ROUND_CORNERS)
-                .set_header(vec![Cell::new("Certificate Metric").add_attribute(Attribute::Bold).fg(Color::Cyan), Cell::new("Status").add_attribute(Attribute::Bold).fg(Color::Cyan)]);
+                .set_header(vec![
+                    Cell::new("Sertifika Metriği").add_attribute(Attribute::Bold).fg(Color::Cyan), 
+                    Cell::new("Durum").add_attribute(Attribute::Bold).fg(Color::Cyan)
+                ]);
 
             if let Some(ref cert) = analysis.certificate {
-                cert_table.add_row(vec!["Common Name", &cert.common_name]);
-                let validity = if cert.is_valid { "VALID".green().to_string() } else { "INVALID".red().to_string() };
-                cert_table.add_row(vec!["Chain Trust", &validity]);
-                let ct = if cert.ct_logged { "LOGGED".green().to_string() } else { "MISSING".red().to_string() };
-                cert_table.add_row(vec!["Transparency (CT)", &ct]);
-                let hsts = if cert.hsts_enabled { "ENABLED".green().to_string() } else { "DISABLED".yellow().to_string() };
-                cert_table.add_row(vec!["HSTS Policy", &hsts]);
+                cert_table.add_row(vec!["Ortak Ad (Common Name)", &cert.common_name]);
+                let validity = if cert.is_valid { "GEÇERLİ".green().to_string() } else { "GEÇERSİZ".red().to_string() };
+                cert_table.add_row(vec!["Güven Zinciri", &validity]);
+                let ct = if cert.ct_logged { "KAYITLI (Safe)".green().to_string() } else { "KAYITSIZ (Risk)".red().to_string() };
+                cert_table.add_row(vec!["Şeffaflık (CT)", &ct]);
+                let hsts = if cert.hsts_enabled { "AKTİF".green().to_string() } else { "PASİF".yellow().to_string() };
+                cert_table.add_row(vec!["HSTS Politikası", &hsts]);
             }
-            println!("\n{}", "📜 CERTIFICATE ANALYTICS".bold().yellow());
+            println!("\n{}", "📜 SERTİFİKA ANALİTİĞİ".bold().yellow());
             println!("{cert_table}");
 
-            // 3. Vulnerabilities
+            // 3. Zafiyetler
             if !analysis.vulnerabilities.is_empty() {
-                println!("\n{}", "🚨 VULNERABILITY ASSESSMENT".bold().red());
+                println!("\n{}", "🚨 ZAFİYET DEĞERLENDİRMESİ".bold().red());
                 for v in &analysis.vulnerabilities {
                     println!("  {} {}", "✖".red(), v.bright_red());
                 }
             } else {
-                println!("\n{} No major vulnerabilities detected (POODLE, Heartbleed checked).", "✅".green());
+                println!("\n{} Herhangi bir kritik zafiyet (POODLE vb.) tespit edilmedi.", "✅".green());
             }
 
-            // 4. Security Grade
+            // 4. Güvenlik Puanı
             if show_grade {
                 let color = if analysis.grade.contains('A') { Color::Green } else if analysis.grade.contains('B') { Color::Cyan } else { Color::Red };
                 let mut grade_table = Table::new();
                 grade_table.load_preset(UTF8_FULL).apply_modifier(UTF8_ROUND_CORNERS);
                 grade_table.add_row(vec![
-                    Cell::new("FINAL SECURITY GRADE").add_attribute(Attribute::Bold),
+                    Cell::new("FİNAL GÜVENLİK PUANI").add_attribute(Attribute::Bold),
                     Cell::new(&analysis.grade).add_attribute(Attribute::Bold).fg(color)
                 ]);
                 println!("\n{grade_table}");

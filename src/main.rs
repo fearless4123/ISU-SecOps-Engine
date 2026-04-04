@@ -1,47 +1,85 @@
-use clap::{Parser, CommandFactory};
+use clap::{Parser, Subcommand, CommandFactory};
+use dialoguer::{Select, Input, theme::ColorfulTheme};
 use colored::*;
 
 mod ssl_check;
+mod web_ui;
 
 #[derive(Parser)]
 #[command(name = "secops")]
-#[command(author = "Antigravity Security")]
-#[command(version = "0.1.0")]
-#[command(about = "ISU SecOps Engine - Professional SSL/TLS Security Auditor", long_about = None)]
+#[command(author = "Antigravity Security Team")]
+#[command(version = "1.0.0")]
+#[command(about = "🛡️ ISU SecOps Engine - Profesyonel SSL/TLS Pentest Platformu", long_about = None)]
 struct Cli {
-    /// Target host to audit (e.g., google.com)
-    #[arg(value_name = "HOST")]
-    host: Option<String>,
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
 
-    /// Calculate and display security grade (A-F)
-    #[arg(short, long)]
-    grade: bool,
-
-    /// Enumerate all supported cipher suites (Active probing)
-    #[arg(short, long)]
-    ciphers: bool,
-
-    /// Export the full analysis to a JSON file
-    #[arg(short, long, value_name = "FILE")]
-    json: Option<String>,
-
-    /// Scan multiple hosts from a file (one host per line)
-    #[arg(short, long, value_name = "FILE")]
-    file: Option<String>,
+#[derive(Subcommand)]
+enum Commands {
+    /// Terminal üzerinden hızlı tarama başlatır
+    Cli {
+        /// Hedef domain adı (örn: google.com)
+        host: String,
+        /// Güvenlik puanını hesaplasın mı?
+        #[arg(short, long)]
+        grade: bool,
+    },
+    /// Web Dashboard arayüzünü başlatır
+    Web {
+        /// Port numarası (Varsayılan: 8080)
+        #[arg(short, long, default_value_t = 8080)]
+        port: u16,
+    },
+    /// İnteraktif Sihirbaz moduna geçer
+    Wizard,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    if let Some(target) = cli.host {
-        ssl_check::run_analysis(&target, cli.grade, cli.ciphers, cli.json).await?;
-    } else if let Some(path) = cli.file {
-        ssl_check::run_batch_analysis(&path, cli.grade, cli.ciphers, cli.json).await?;
-    } else {
-        Cli::command().print_help()?;
-        println!("\n\n{} Usage: cargo run -- <HOST> [OPTIONS]", "💡".yellow());
-        println!("{} Example: cargo run -- google.com --grade", "🚀".cyan());
+    match cli.command {
+        Some(Commands::Cli { host, grade }) => {
+            ssl_check::run_analysis(&host, grade, false, None).await?;
+        }
+        Some(Commands::Web { port }) => {
+            web_ui::start_server(port).await?;
+        }
+        Some(Commands::Wizard) | None => {
+            run_wizard().await?;
+        }
+    }
+
+    Ok(())
+}
+
+async fn run_wizard() -> anyhow::Result<()> {
+    println!("\n{}", "🛡️  ISU SecOps Engine - İnteraktif Sihirbaz".bold().bright_cyan());
+    
+    let selections = &[
+        "🔍 Hızlı Tarama (Domain)",
+        "🌐 Web Dashboard Başlat",
+        "🚪 Çıkış",
+    ];
+
+    let selection = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("Ne yapmak istersiniz?")
+        .default(0)
+        .items(&selections[..])
+        .interact()?;
+
+    match selection {
+        0 => {
+            let host: String = Input::with_theme(&ColorfulTheme::default())
+                .with_prompt("Hedef Host (örn: google.com)")
+                .interact_text()?;
+            ssl_check::run_analysis(&host, true, false, None).await?;
+        }
+        1 => {
+            web_ui::start_server(8080).await?;
+        }
+        _ => println!("Hoşça kalın!"),
     }
 
     Ok(())

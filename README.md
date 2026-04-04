@@ -8,50 +8,54 @@
 **ISU SecOps Engine**, modern web altyapıları için geliştirilmiş, yüksek performanslı ve asenkron bir SSL/TLS güvenlik denetim motorudur. Basit bir sertifika tarayıcısından öte, kurumsal düzeyde uyumluluk analizi (Compliance), aktif zafiyet taraması ve küresel istihbarat özellikleri sunar.
 
 # 🛡️ ISU SecOps Engine
-**Professional SSL/TLS Security Auditor & Pentest Engine**
+**Profesyonel SSL/TLS Güvenlik ve Denetim Platformu**
 
-The ISU SecOps Engine is a high-performance terminal utility written in Rust, designed for deep security auditing of SSL/TLS configurations. It provides instant visibility into certificate health, protocol vulnerabilities (POODLE, SSLv3), and global server intelligence.
+ISU SecOps Engine, Rust dili ile geliştirilmiş, yüksek performanslı, asenkron ve çok katmanlı bir güvenlik analiz aracıdır. Hem terminal tutkunları için gelişmiş bir **CLI** (Komut Satırı Arayüzü) hem de görsel analiz isteyenler için modern bir **Web Dashboard** sunar.
 
 ---
 
-## 🚀 Speedrun: No-EXE Usage
-This tool is designed to be run directly via the Rust toolchain for maximum transparency and performance.
+## 🚀 Hızlı Başlangıç
 
-### 1. Audit a Single Host
-```bash
-cargo run -- google.com --grade
-```
-*Gives you a full intelligence report, certificate analysis, and a security grade (A-F).*
+Bu proje, herhangi bir `.exe` karmaşasına girmeden doğrudan Rust araç zinciri üzerinden çalıştırılmak üzere optimize edilmiştir.
 
-### 2. Batch Audit (Multiple Hosts)
-Prepare a `targets.txt` file with one domain per line, then run:
+### 1. İnteraktif Sihirbaz (Wizard) Modu
+Komutları ezberlemenize gerek yok! Sadece şunu yazın ve yönergeleri takip edin:
 ```bash
-cargo run -- --file targets.txt --grade
+cargo run -- wizard
 ```
 
-### 3. Enumerate Cipher Suites
-To perform an active probe of all supported encryption algorithms:
+### 2. Terminal (CLI) Üzerinden Hızlı Tarama
 ```bash
-cargo run -- google.com --ciphers
+cargo run -- cli google.com --grade
 ```
+*Sunucu bilgileri, sertifika analitiği ve güvenlik puanı (A-F) anında terminalinizde.*
+
+### 3. Web Dashboard (Görsel Arayüz)
+Modern, "Glassmorphism" tasarımlı arayüzü başlatmak için:
+```bash
+cargo run -- web --port 8080
+```
+Ardından tarayıcınızda `http://localhost:8080` adresine gidin.
 
 ---
 
-## 📊 Key Features
-- **Global Intel:** Detects Server IP, ISP, and ASN physical location.
-- **Vulnerability Probing:** Active checks for SSLv3 and deprecated protocols.
-- **CT Log Verification:** Checks if certificates are properly logged in Certificate Transparency.
-- **Professional Repoting:** Outputs structured, colored tables and optional JSON exports.
-- **Grade System:** Industry-standard A+ to F grading based on security posture.
+## 📊 Ana Özellikler
+
+- **🔍 Derinlikli SSL Analizi:** RSA/ECDSA anahtar güçleri, imza algoritmaları ve sertifika zincir güvenliği kontrolü.
+- **🛡️ Zafiyet Taraması:** POODLE ve SSLv3 gibi kritik yapılandırma hatalarının tespiti.
+- **🌐 Küresel İstihbarat:** Hedef sunucunun fiziksel konumu (Şehir/Ülke), ISP ve ASN bilgilerinin tespiti.
+- **📋 Uyumluluk Kontrolü:** HSTS Politikaları, DNS CAA kayıtları ve Şeffaflık (CT) günlükleri denetimi.
+- **💎 Modern Web UI:** Tamamen Türkçe, şık ve gerçek zamanlı analiz portalı.
 
 ---
 
-## 🛠️ Requirements
-- [Rust & Cargo](https://rust-app.org/learn/get-started) (Latest stable)
-- OpenSSL Development headers
+## 🛠️ Gereksinimler
+
+- [Rust & Cargo](https://rust-app.org/learn/get-started) (En son stabil sürüm)
+- OpenSSL Geliştirici paketleri
 
 ---
-*Developed by Antigravity Security - Optimized for terminal-native workflows.*
+*Antigravity Security Team tarafından profesyoneller için geliştirildi.*
 
 ---
 
