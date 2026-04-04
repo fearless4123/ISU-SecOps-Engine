@@ -6,6 +6,7 @@ mod web_ui;
 mod subdomain;
 mod http_audit;
 mod port_scan;
+mod fuzzer;
 
 #[derive(Parser)]
 #[command(name = "secops")]
@@ -56,6 +57,11 @@ enum PentestCommands {
         /// Target host (e.g., 127.0.0.1)
         host: String,
     },
+    /// Web directory and file discovery (Fuzzing)
+    Fuzz {
+        /// Target base URL (e.g., https://example.com)
+        url: String,
+    },
 }
 
 #[tokio::main]
@@ -76,6 +82,9 @@ async fn main() -> anyhow::Result<()> {
             }
             PentestCommands::PortScan { host } => {
                 port_scan::run_port_scan(&host).await?;
+            }
+            PentestCommands::Fuzz { url } => {
+                fuzzer::run_fuzz(&url).await?;
             }
         },
         Commands::WebUi { port } => {
