@@ -34,6 +34,7 @@ pub struct TlsVersionInfo {
 pub struct SslAnalysis {
     pub host: String,
     pub certificate: Option<CertInfo>,
+    pub cert_chain: Vec<String>,
     pub tls_versions: Vec<TlsVersionInfo>,
     pub supported_ciphers: Vec<CipherInfo>,
     pub caa_records: Vec<String>,

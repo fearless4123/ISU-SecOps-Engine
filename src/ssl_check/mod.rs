@@ -19,7 +19,6 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool, jso
                 println!("{:<20}: {}", "Signature Alg.".yellow(), cert.signature_algorithm);
                 println!("{:<20}: {}", "Not Before".yellow(), cert.not_before);
                 println!("{:<20}: {}", "Not After".yellow(), cert.not_after);
-                println!("{:<20}: {}", "SANs".yellow(), cert.subject_alt_names.join(", "));
                 
                 let hsts = if cert.hsts_enabled { "ENABLED".green().bold() } else { "DISABLED".red() };
                 println!("{:<20}: {}", "HSTS".yellow(), hsts);
@@ -39,12 +38,21 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool, jso
                 println!("{:<20}: {}", "Status".yellow(), validity);
             }
 
+            println!("\n{}", "--- Certificate Chain (Trust Path) ---".bold().cyan());
+            if analysis.cert_chain.is_empty() {
+                println!("{}", "  No chain information available.".red());
+            } else {
+                for (i, node) in analysis.cert_chain.iter().enumerate() {
+                    let indent = "  ".repeat(i);
+                    let prefix = if i == 0 { "●" } else { "┗━" };
+                    let color_node = if i == 0 { node.white().bold() } else if i == analysis.cert_chain.len() - 1 { node.green().bold() } else { node.yellow() };
+                    println!("{}{}{}", indent, prefix.dimmed(), color_node);
+                }
+            }
+
             println!("\n{}", "--- Security Headers Audit ---".bold().cyan());
             if let Some(ref cert) = analysis.certificate {
-                let target_headers = vec![
-                    "Content-Security-Policy", "X-Frame-Options",
-                    "X-Content-Type-Options", "Referrer-Policy", "Permissions-Policy"
-                ];
+                let target_headers = vec!["Content-Security-Policy", "X-Frame-Options", "X-Content-Type-Options", "Referrer-Policy"];
                 for header in target_headers {
                     let status = if let Some(val) = cert.security_headers.get(header) {
                         format!("{} ({})", "PRESENT".green().bold(), val.dimmed())
@@ -57,7 +65,7 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool, jso
 
             println!("\n{}", "--- DNS Security & Compliance ---".bold().cyan());
             if analysis.caa_records.is_empty() {
-                println!("{:<20}: {}", "CAA Records".yellow(), "NONE (Insecure/No Policy)".red());
+                println!("{:<20}: {}", "CAA Records".yellow(), "NONE".red());
             } else {
                 println!("{:<20}:", "CAA Records".yellow());
                 for caa in &analysis.caa_records {
@@ -67,45 +75,15 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool, jso
 
             println!("\n{}", "--- TLS Protocol Support ---".bold().cyan());
             for tv in &analysis.tls_versions {
-                let status = if tv.supported {
-                    "SUPPORTED".green().bold()
-                } else {
-                    "NOT SUPPORTED".red()
-                };
+                let status = if tv.supported { "SUPPORTED".green().bold() } else { "NOT SUPPORTED".red() };
                 println!("{:<20}: {}", tv.version.yellow(), status);
-            }
-
-            if !analysis.supported_ciphers.is_empty() {
-                println!("\n{}", "--- Enumerated Cipher Suites ---".bold().cyan());
-                for cipher in &analysis.supported_ciphers {
-                    let strength_color = match cipher.strength.as_str() {
-                        "SECURE" => cipher.name.green(),
-                        "WEAK" => cipher.name.yellow(),
-                        "INSECURE" => cipher.name.red().bold(),
-                        _ => cipher.name.white(),
-                    };
-                    println!("{} [Strength: {}]", strength_color, cipher.strength);
-                    if let Some(ref rec) = cipher.recommendation {
-                        println!("   ┗━ {}", rec.dimmed().italic());
-                    }
-                }
             }
 
             if show_grade {
                 println!("\n{}", "--- Security Grade ---".bold().cyan());
-                let grade_color = if analysis.grade.starts_with('A') {
-                    analysis.grade.green().bold()
-                } else if analysis.grade.starts_with('B') {
-                    analysis.grade.blue().bold()
-                } else if analysis.grade.starts_with('C') {
-                    analysis.grade.yellow().bold()
-                } else {
-                    analysis.grade.red().bold()
-                };
-                println!("Grade: {}", grade_color);
+                println!("Grade: {}", analysis.grade.green().bold());
             }
 
-            // 2. Optional JSON Export
             if let Some(path) = json_path {
                 let json_data = serde_json::to_string_pretty(&analysis)?;
                 let mut file = File::create(&path)?;

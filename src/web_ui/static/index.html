@@ -22,139 +22,87 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg-color); background-image: radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.12) 0px, transparent 50%); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
 
-        header { padding: 3rem 2rem; text-align: center; }
-        .logo { font-size: 2rem; font-weight: 800; letter-spacing: -0.05em; background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.75rem; }
-        .subtitle { color: var(--text-secondary); font-size: 0.95rem; max-width: 600px; margin: 0 auto; }
-        main { flex: 1; max-width: 1100px; width: 90%; margin: 0 auto; padding-bottom: 5rem; }
+        header { padding: 2rem; text-align: center; }
+        .logo { font-size: 2rem; font-weight: 800; letter-spacing: -0.05em; background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        main { flex: 1; max-width: 1200px; width: 90%; margin: 0 auto; padding-bottom: 5rem; }
 
         .search-container { background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 2rem; display: flex; gap: 1.25rem; margin: 2rem 0; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5); }
         input { background: transparent; border: none; color: var(--text-primary); flex: 1; font-size: 1.125rem; padding: 0.5rem 1.25rem; outline: none; }
-        button { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border: none; color: #fff; padding: 0.875rem 2.5rem; border-radius: 1.25rem; font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; letter-spacing: 0.05em; }
-        button:hover { transform: scale(1.02); filter: brightness(1.1); box-shadow: 0 0 25px rgba(56, 189, 248, 0.4); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border: none; color: #fff; padding: 0.875rem 2.5rem; border-radius: 1.25rem; font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; opacity: 0; transform: translateY(30px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; opacity: 0; transform: translateY(30px); transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .dashboard-grid.active { opacity: 1; transform: translateY(0); }
 
-        .card { background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 1.75rem; padding: 2rem; display: flex; flex-direction: column; transition: transform 0.3s ease; }
-        .card:hover { transform: translateY(-5px); }
-        .card h3 { font-size: 1.125rem; margin-bottom: 2rem; color: var(--accent-primary); display: flex; align-items: center; gap: 0.75rem; }
+        .card { background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 1.75rem; padding: 2rem; display: flex; flex-direction: column; }
+        .card h3 { font-size: 1.125rem; margin-bottom: 2rem; color: var(--accent-primary); }
 
-        .info-item { margin-bottom: 1.25rem; }
-        .info-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.375rem; }
-        .info-value { font-size: 1rem; font-weight: 600; word-break: break-all; }
-
-        .grade-highlight { font-size: 6rem; font-weight: 900; background: linear-gradient(to bottom, #fff, var(--text-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 1.5rem 0; line-height: 1; }
-        .status-pill { display: inline-block; padding: 0.375rem 0.75rem; border-radius: 0.6rem; font-size: 0.7rem; font-weight: 700; margin-top: 0.25rem; }
+        .grade-highlight { font-size: 5rem; font-weight: 900; background: linear-gradient(to bottom, #fff, var(--text-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .status-pill { display: inline-block; padding: 0.375rem 0.75rem; border-radius: 0.6rem; font-size: 0.7rem; font-weight: 700; }
         .pill-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
         .pill-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
         .pill-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
 
-        .header-matrix { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+        /* Trust Path Visualization */
+        .trust-chain { position: relative; padding-left: 20px; border-left: 2px dashed var(--border-color); margin: 1rem 0; }
+        .chain-node { position: relative; margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 1rem; border: 1px solid var(--border-color); }
+        .chain-node::before { content: ""; position: absolute; left: -26px; top: 24px; width: 12px; height: 12px; background: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 10px var(--accent-primary); }
+        .chain-node.leaf::before { background: var(--success); box-shadow: 0 0 10px var(--success); }
+        .node-name { display: block; font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+        .node-type { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .header-matrix { display: flex; flex-direction: column; gap: 0.75rem; }
         .header-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
         .header-name { font-size: 0.85rem; color: var(--text-secondary); }
 
-        .cipher-list { list-style: none; margin-top: 1rem; }
-        .cipher-item { padding: 0.75rem; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.25rem; }
-        .cipher-header { display: flex; justify-content: space-between; align-items: center; }
-        .cipher-recommend { font-size: 0.75rem; color: var(--text-secondary); font-style: italic; }
-
-        .ca-record { padding: 0.5rem; background: rgba(56, 189, 248, 0.1); border-radius: 0.5rem; border-left: 3px solid var(--accent-primary); margin-bottom: 0.5rem; font-size: 0.875rem; }
-        .loader { display: none; width: 50px; height: 50px; border: 4px solid rgba(56, 189, 248, 0.1); border-top: 4px solid var(--accent-primary); border-radius: 50%; animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite; margin: 4rem auto; }
-        
-        .action-bar { display: none; margin-top: 2rem; justify-content: flex-end; }
-        .action-bar.active { display: flex; }
-        .btn-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: var(--text-primary); }
-
+        .loader { display: none; width: 50px; height: 50px; border: 4px solid rgba(56, 189, 248, 0.1); border-top: 4px solid var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 4rem auto; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .error-box { display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: var(--danger); padding: 1.5rem; border-radius: 1.25rem; margin-bottom: 2rem; text-align: center; }
-
-        @media print {
-            body { background: #fff !important; color: #000 !important; }
-            .search-container, header, .action-bar, .loader, .error-box { display: none !important; }
-            main { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
-            .dashboard-grid { grid-template-columns: 1fr !important; opacity: 1 !important; transform: none !important; }
-            .card { background: none !important; border: 1px solid #ddd !important; border-radius: 0 !important; box-shadow: none !important; break-inside: avoid; margin-bottom: 20px; }
-            .grade-highlight { -webkit-text-fill-color: #000 !important; background: none !important; font-size: 4rem !important; }
-            .status-pill { border: 1px solid #000 !important; color: #000 !important; background: none !important; }
-            .logo { display: block !important; -webkit-text-fill-color: #000 !important; text-align: center; margin-bottom: 20px; }
-        }
     </style>
 </head>
 <body>
     <header>
         <div class="logo">SECOPS ENGINE</div>
-        <div class="subtitle">Professional SSL/TLS Security Analyzer & Compliance Auditor</div>
     </header>
 
     <main>
         <div class="search-container">
-            <input type="text" id="targetHost" placeholder="Enter target domain or IP (e.g., google.com)" value="google.com">
-            <button id="scanBtn" onclick="runScan()">Start Audit</button>
+            <input type="text" id="targetHost" placeholder="Enter target domain" value="google.com">
+            <button id="scanBtn" onclick="runScan()">Analyze</button>
         </div>
 
         <div id="error" class="error-box"></div>
         <div id="loader" class="loader"></div>
 
         <div id="dashboard" class="dashboard-grid">
-            <div class="card" style="align-items: center; text-align: center; justify-content: center;">
-                <h3>Overall Security Grade</h3>
+            <div class="card" style="text-align: center;">
+                <h3>Overall Grade</h3>
                 <div id="resGrade" class="grade-highlight">-</div>
-                <div id="resGradeDetail" class="subtitle">Enter a domain to begin</div>
+                <div id="resGradeSub" class="subtitle" style="color:var(--text-secondary)">-</div>
             </div>
 
             <div class="card">
-                <h3>Compliance & Headers</h3>
-                <div class="header-matrix" id="headerList">
-                    <!-- Matrix will be populated here -->
-                </div>
-                <div class="info-item" style="margin-top: 2rem;">
-                    <div class="info-label">DNS CAA Records</div>
-                    <div id="resCAAList" style="margin-top: 0.5rem;"></div>
+                <h3>Trust Path Hierarchy</h3>
+                <div id="resChain" class="trust-chain">
+                    <!-- Chain populated here -->
                 </div>
             </div>
 
             <div class="card">
-                <h3>Certificate Details</h3>
-                <div class="info-item">
-                    <div class="info-label">Common Name</div>
-                    <div class="info-value" id="resCN">-</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Revocations (OCSP)</div>
-                    <div id="resOCSP">-</div>
-                </div>
-                <div id="protocolList" style="margin-top: 1rem;">
-                    <div class="info-row" style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
-                        <span style="color:var(--text-secondary)">TLS 1.2</span>
-                        <span id="resTLS12">-</span>
-                    </div>
-                </div>
-                <div class="info-label">Enumerated Ciphers</div>
-                <div id="resCipherList" class="cipher-list"></div>
+                <h3>Compliance Matrix</h3>
+                <div class="header-matrix" id="headerList"></div>
             </div>
         </div>
-
-        <div class="action-bar" id="actionBar">
-            <button class="btn-secondary" onclick="window.print()">Download PDF Report</button>
-        </div>
+        <button class="status-pill pill-success" style="margin-top:2rem; width:100%; padding:1rem; cursor:pointer;" onclick="window.print()">PRINT AUDIT REPORT</button>
     </main>
 
     <script>
         async function runScan() {
             const host = document.getElementById('targetHost').value;
-            if (!host) return;
-
-            const scanBtn = document.getElementById('scanBtn');
             const loader = document.getElementById('loader');
             const dashboard = document.getElementById('dashboard');
             const error = document.getElementById('error');
-            const actionBar = document.getElementById('actionBar');
-
-            scanBtn.disabled = true;
             loader.style.display = 'block';
             dashboard.classList.remove('active');
-            actionBar.classList.remove('active');
             error.style.display = 'none';
 
             try {
@@ -163,66 +111,37 @@
                 if (data.error) throw new Error(data.error);
 
                 document.getElementById('resGrade').innerText = data.grade.split(' ')[0];
-                document.getElementById('resGradeDetail').innerText = data.grade;
+                document.getElementById('resGradeSub').innerText = data.grade;
+
+                const chainBox = document.getElementById('resChain');
+                chainBox.innerHTML = '';
+                if (data.cert_chain) {
+                    data.cert_chain.forEach((node, i) => {
+                        const div = document.createElement('div');
+                        div.className = `chain-node ${i === 0 ? 'leaf' : ''}`;
+                        div.innerHTML = `<span class="node-type">${i === 0 ? 'End Entity' : (i === data.cert_chain.length - 1 ? 'Root' : 'Intermediate')}</span><span class="node-name">${node}</span>`;
+                        chainBox.appendChild(div);
+                    });
+                }
 
                 const headerList = document.getElementById('headerList');
                 headerList.innerHTML = '';
-                const targetHeaders = [
-                    "Strict-Transport-Security", "Content-Security-Policy", 
-                    "X-Frame-Options", "X-Content-Type-Options", "Referrer-Policy"
-                ];
-
+                const targets = ["Strict-Transport-Security", "Content-Security-Policy", "X-Frame-Options", "X-Content-Type-Options"];
                 if (data.certificate) {
-                    const cert = data.certificate;
-                    document.getElementById('resCN').innerText = cert.common_name;
-                    document.getElementById('resOCSP').innerHTML = cert.revocation_status.includes('Good') || cert.revocation_status.includes('Available') ? 
-                        `<span class="status-pill pill-success">${cert.revocation_status}</span>` : 
-                        `<span class="status-pill pill-warning">${cert.revocation_status}</span>`;
-
-                    targetHeaders.forEach(h => {
+                    targets.forEach(h => {
                         const row = document.createElement('div');
                         row.className = 'header-row';
-                        const present = cert.security_headers && cert.security_headers[h];
-                        row.innerHTML = `<span class="header-name">${h}</span><span class="status-pill ${present ? 'pill-success' : 'pill-danger'}">${present ? 'PROTECTED' : 'MISSING'}</span>`;
+                        const present = data.certificate.security_headers && data.certificate.security_headers[h];
+                        row.innerHTML = `<span class="header-name">${h}</span><span class="status-pill ${present ? 'pill-success' : 'pill-danger'}">${present ? 'YES' : 'NO'}</span>`;
                         headerList.appendChild(row);
-                    });
-
-                    const tls12 = data.tls_versions.find(v => v.version === 'TLS 1.2');
-                    document.getElementById('resTLS12').innerHTML = tls12?.supported ? '<span style="color:var(--success)">SUPPORTED</span>' : '<span style="color:var(--danger)">NO</span>';
-                }
-
-                const caaList = document.getElementById('resCAAList');
-                caaList.innerHTML = '';
-                if (data.caa_records && data.caa_records.length > 0) {
-                    data.caa_records.forEach(caa => {
-                        const div = document.createElement('div');
-                        div.className = 'ca-record';
-                        div.innerText = caa;
-                        caaList.appendChild(div);
-                    });
-                } else {
-                    caaList.innerHTML = '<span class="status-pill pill-warning">NO CAA POLICY</span>';
-                }
-
-                const cipherList = document.getElementById('resCipherList');
-                cipherList.innerHTML = '';
-                if (data.supported_ciphers && data.supported_ciphers.length > 0) {
-                    data.supported_ciphers.forEach(cipher => {
-                        const item = document.createElement('div');
-                        item.className = 'cipher-item';
-                        const pillClass = cipher.strength === 'SECURE' ? 'pill-success' : (cipher.strength === 'WEAK' ? 'pill-warning' : 'pill-danger');
-                        item.innerHTML = `<div class="cipher-header"><span style="font-weight: 600; font-size: 0.8rem;">${cipher.name}</span><span class="status-pill ${pillClass}" style="font-size: 0.6rem; padding: 0.2rem 0.5rem;">${cipher.strength}</span></div>`;
-                        cipherList.appendChild(item);
                     });
                 }
 
                 dashboard.classList.add('active');
-                actionBar.classList.add('active');
             } catch (e) {
-                error.innerText = `Audit failed: ${e.message}`;
+                error.innerText = `Error: ${e.message}`;
                 error.style.display = 'block';
             } finally {
-                scanBtn.disabled = false;
                 loader.style.display = 'none';
             }
         }
