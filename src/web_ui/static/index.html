@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISU SecOps Engine | Dashboard</title>
+    <title>ISU SecOps Engine | Professional SSL/TLS Analyzer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #030712;
-            --card-bg: rgba(17, 24, 39, 0.7);
-            --accent-primary: #3b82f6;
-            --accent-secondary: #8b5cf6;
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --border-color: rgba(255, 255, 255, 0.1);
+            --bg-color: #020617;
+            --card-bg: rgba(15, 23, 42, 0.7);
+            --accent-primary: #38bdf8;
+            --accent-secondary: #818cf8;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.08);
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
@@ -29,53 +29,54 @@
         body {
             background: var(--bg-color);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.12) 0px, transparent 50%);
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
         }
 
         header {
-            padding: 2rem;
+            padding: 3rem 2rem;
             text-align: center;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 2rem;
+            font-weight: 800;
             letter-spacing: -0.05em;
             background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .subtitle {
             color: var(--text-secondary);
-            font-size: 0.875rem;
+            font-size: 0.95rem;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         main {
             flex: 1;
-            max-width: 1000px;
+            max-width: 1100px;
             width: 90%;
             margin: 0 auto;
-            padding-bottom: 4rem;
+            padding-bottom: 5rem;
         }
 
         .search-container {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
-            padding: 1rem;
-            border-radius: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 2rem;
             display: flex;
-            gap: 1rem;
+            gap: 1.25rem;
             margin: 2rem 0;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
         }
 
         input {
@@ -84,165 +85,194 @@
             color: var(--text-primary);
             flex: 1;
             font-size: 1.125rem;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 1.25rem;
             outline: none;
         }
 
         button {
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             border: none;
-            color: white;
-            padding: 0.75rem 2rem;
-            border-radius: 1rem;
-            font-weight: 600;
+            color: #fff;
+            padding: 0.875rem 2.5rem;
+            border-radius: 1.25rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5);
+            transform: scale(1.02);
+            filter: brightness(1.1);
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
         }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .results {
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
             opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        .results.active {
+        .dashboard-grid.active {
             opacity: 1;
             transform: translateY(0);
         }
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border-color);
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-        }
-
-        .card h3 {
-            font-size: 1rem;
-            margin-bottom: 1.25rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-            font-size: 0.9375rem;
-        }
-
-        .label { color: var(--text-secondary); }
-        .value { font-weight: 500; text-align: right; }
-
-        .grade-card {
+            border-radius: 1.75rem;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            transition: transform 0.3s ease;
         }
 
-        .grade-value {
-            font-size: 5rem;
-            font-weight: 800;
-            margin: 1rem 0;
-            background: linear-gradient(to bottom, #fff, #9ca3af);
+        .card:hover { transform: translateY(-5px); }
+
+        .card h3 {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .info-item {
+            margin-bottom: 1.25rem;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.375rem;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .grade-highlight {
+            font-size: 6rem;
+            font-weight: 900;
+            background: linear-gradient(to bottom, #fff, var(--text-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin: 1.5rem 0;
+            line-height: 1;
         }
 
         .status-pill {
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.5rem;
+            display: inline-block;
+            padding: 0.375rem 1rem;
+            border-radius: 0.75rem;
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 700;
+            margin-top: 0.25rem;
         }
 
-        .status-supported { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-        .status-not-supported { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .pill-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .pill-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .pill-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
 
         .loader {
             display: none;
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(59, 130, 246, 0.2);
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(56, 189, 248, 0.1);
+            border-top: 4px solid var(--accent-primary);
             border-radius: 50%;
-            border-top-color: var(--accent-primary);
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
+            animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            margin: 4rem auto;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .error-msg {
-            color: var(--danger);
-            text-align: center;
-            padding: 1.5rem;
+        .error-box {
             display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            margin-bottom: 2rem;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="logo">SECOPS ENGINE</div>
-        <div class="subtitle">Modül 3: SSL/TLS Security Analyzer</div>
+        <div class="subtitle">Professional SSL/TLS Security Analyzer & Compliance Auditor</div>
     </header>
 
     <main>
         <div class="search-container">
-            <input type="text" id="targetHost" placeholder="Enter target domain (e.g., google.com)" value="google.com">
-            <button id="scanBtn" onclick="runScan()">Analyze</button>
+            <input type="text" id="targetHost" placeholder="Enter target domain or IP (e.g., google.com)" value="google.com">
+            <button id="scanBtn" onclick="runScan()">Start Audit</button>
         </div>
 
+        <div id="error" class="error-box"></div>
         <div id="loader" class="loader"></div>
-        <div id="error" class="error-msg"></div>
 
-        <div id="results" class="results">
-            <!-- Cert Card -->
+        <div id="dashboard" class="dashboard-grid">
+            <!-- Security Score -->
+            <div class="card" style="align-items: center; text-align: center; justify-content: center;">
+                <h3>Overall Security Grade</h3>
+                <div id="resGrade" class="grade-highlight">-</div>
+                <div id="resGradeDetail" class="subtitle">Enter a domain to begin</div>
+            </div>
+
+            <!-- Cert Details -->
             <div class="card">
-                <h3>Certificate Details</h3>
-                <div id="certInfo">
-                    <div class="info-row"><span class="label">Common Name</span> <span class="value" id="resCN">-</span></div>
-                    <div class="info-row"><span class="label">Issuer</span> <span class="value" id="resIssuer">-</span></div>
-                    <div class="info-row"><span class="label">Expires</span> <span class="value" id="resExpiry">-</span></div>
-                    <div class="info-row"><span class="label">Status</span> <span class="value" id="resStatus">-</span></div>
+                <h3>Certificate Summary</h3>
+                <div class="info-item">
+                    <div class="info-label">Common Name</div>
+                    <div class="info-value" id="resCN">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Key Info & Strength</div>
+                    <div class="info-value" id="resKey">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Signature Alg</div>
+                    <div class="info-value" id="resSig">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">HSTS Status</div>
+                    <div id="resHSTS">-</div>
                 </div>
             </div>
 
-            <!-- Protocols Card -->
+            <!-- HANDSHAKE & PROTOCOLS -->
             <div class="card">
-                <h3>Protocol Support</h3>
-                <div id="protocolInfo">
-                    <div class="info-row"><span class="label">TLS 1.0</span> <span class="value" id="resTLS10">-</span></div>
-                    <div class="info-row"><span class="label">TLS 1.1</span> <span class="value" id="resTLS11">-</span></div>
-                    <div class="info-row"><span class="label">TLS 1.2</span> <span class="value" id="resTLS12">-</span></div>
-                    <div class="info-row"><span class="label">TLS 1.3</span> <span class="value" id="resTLS13">-</span></div>
+                <h3>Protocols & Connection</h3>
+                <div class="info-item">
+                    <div class="info-label">Cipher Suite</div>
+                    <div class="info-value" id="resCipher" style="color: var(--accent-primary)">-</div>
                 </div>
-            </div>
-
-            <!-- Grade Card -->
-            <div class="card grade-card">
-                <h3>Security Grade</h3>
-                <div id="resGrade" class="grade-value">-</div>
-                <div class="subtitle" id="resGradeSub">Analyze to see grade</div>
+                <div id="protocolList">
+                    <div class="info-row" style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+                        <span style="color:var(--text-secondary)">TLS 1.2</span>
+                        <span id="resTLS12">-</span>
+                    </div>
+                    <div class="info-row" style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--text-secondary)">TLS 1.3</span>
+                        <span id="resTLS13">-</span>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -254,13 +284,12 @@
 
             const scanBtn = document.getElementById('scanBtn');
             const loader = document.getElementById('loader');
-            const results = document.getElementById('results');
+            const dashboard = document.getElementById('dashboard');
             const error = document.getElementById('error');
 
-            // Reset UI
             scanBtn.disabled = true;
             loader.style.display = 'block';
-            results.classList.remove('active');
+            dashboard.classList.remove('active');
             error.style.display = 'none';
 
             try {
@@ -269,37 +298,34 @@
 
                 if (data.error) throw new Error(data.error);
 
-                // Update UI
+                // Update UI Values
+                document.getElementById('resGrade').innerText = data.grade.split(' ')[0];
+                document.getElementById('resGradeDetail').innerText = data.grade;
+
                 if (data.certificate) {
-                    document.getElementById('resCN').innerText = data.certificate.common_name;
-                    document.getElementById('resIssuer').innerText = data.certificate.issuer;
-                    document.getElementById('resExpiry').innerText = new Date(data.certificate.not_after).toLocaleDateString();
-                    document.getElementById('resStatus').innerHTML = data.certificate.is_valid ? 
-                        '<span class="status-pill status-supported">VALID</span>' : 
-                        '<span class="status-pill status-not-supported">INVALID</span>';
+                    const cert = data.certificate;
+                    document.getElementById('resCN').innerText = cert.common_name;
+                    document.getElementById('resKey').innerText = cert.key_info;
+                    document.getElementById('resSig').innerText = cert.signature_algorithm;
+                    document.getElementById('resCipher').innerText = cert.cipher_suite;
+                    
+                    document.getElementById('resHSTS').innerHTML = cert.hsts_enabled ? 
+                        '<span class="status-pill pill-success">HSTS ENABLED</span>' : 
+                        '<span class="status-pill pill-danger">HSTS MISSING</span>';
+
+                    // Protocols
+                    const tls12 = data.tls_versions.find(v => v.version === 'TLS 1.2');
+                    const tls13 = data.tls_versions.find(v => v.version === 'TLS 1.3');
+                    
+                    document.getElementById('resTLS12').innerHTML = tls12?.supported ? 
+                        '<span style="color:var(--success)">SUPPORTED</span>' : '<span style="color:var(--danger)">NO</span>';
+                    document.getElementById('resTLS13').innerHTML = tls13?.supported ? 
+                        '<span style="color:var(--success)">SUPPORTED</span>' : '<span style="color:var(--danger)">NO</span>';
                 }
 
-                data.tls_versions.forEach(v => {
-                    const idMap = {
-                        'TLS 1.0': 'resTLS10',
-                        'TLS 1.1': 'resTLS11',
-                        'TLS 1.2': 'resTLS12',
-                        'TLS 1.3': 'resTLS13'
-                    };
-                    const id = idMap[v.version];
-                    if (id) {
-                        document.getElementById(id).innerHTML = v.supported ? 
-                            '<span class="status-pill status-supported">SUPPORTED</span>' : 
-                            '<span class="status-pill status-not-supported">NOT SUPPORTED</span>';
-                    }
-                });
-
-                document.getElementById('resGrade').innerText = data.grade.split(' ')[0];
-                document.getElementById('resGradeSub').innerText = data.grade;
-
-                results.classList.add('active');
+                dashboard.classList.add('active');
             } catch (e) {
-                error.innerText = `Scan failed: ${e.message}`;
+                error.innerText = `Audit failed: ${e.message}`;
                 error.style.display = 'block';
             } finally {
                 scanBtn.disabled = false;
