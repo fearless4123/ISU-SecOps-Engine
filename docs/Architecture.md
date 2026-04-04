@@ -1,6 +1,6 @@
-# ISU SecOps Engine - Sistem Mimarisi (Architecture)
+# AegisTLS - Sistem Mimarisi (Architecture)
 
-**ISU SecOps Engine**, siber güvenlik araçları için en yüksek performans ve asenkron veri işleme standartlarını (Rust + Tokio) temel alır.
+**AegisTLS**, siber güvenlik araçları için en yüksek performans ve asenkron veri işleme standartlarını (Rust + Tokio) temel alır.
 
 ---
 

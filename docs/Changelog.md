@@ -1,4 +1,4 @@
-# ISU SecOps Engine - Değişiklik Kaydı ve Sürüm Notları (Changelog)
+# AegisTLS - Değişiklik Kaydı ve Sürüm Notları (Changelog)
 
 Sürüm v0.5.0 itibarıyla tüm modüler gelişim süreci.
 

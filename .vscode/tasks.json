@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "testFilter",
+      "description": "Test name or filter pattern",
+      "type": "promptString",
+      "default": ""
+    }
+  ],
+  "tasks": [
+    {
+      "label": "Build: Debug",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["build"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "Lint: Clippy",
+      "type": "shell",
+      "command": "cargo",
+      "args": ["clippy", "--all-targets", "--", "-D", "warnings"],
+      "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "Test: All",
+      "type": "shell",
+      "command": "cargo nextest run",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": ["$rustc"]
+    }
+  ]
+}

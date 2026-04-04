@@ -1,14 +1,10 @@
-use axum::{
-    routing::{get, post},
-    Json, Router, response::Html,
-    extract::Path,
-};
+use crate::ssl_check::scanner::perform_analysis;
+use axum::{Json, Router, extract::Path, response::Html, routing::get};
+use colored::Colorize;
 use rust_embed::RustEmbed;
+use serde_json::json;
 use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
-use crate::ssl_check::scanner::perform_analysis;
-use serde_json::json;
-use colored::Colorize;
 
 #[derive(RustEmbed)]
 #[folder = "src/web_ui/static/"]
@@ -22,8 +18,13 @@ pub async fn start_server(port: u16) -> anyhow::Result<()> {
 
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    
-    println!("\n{} {} {}", "⚡".yellow(), "ISU SecOps Dashbord:".bold().cyan(), format!("http://{}", addr).underline().white());
+
+    println!(
+        "\n{} {} {}",
+        "⚡".yellow(),
+        "AegisTLS Dashboard:".bold().cyan(),
+        format!("http://{}", addr).underline().white()
+    );
     axum::serve(listener, app).await?;
 
     Ok(())

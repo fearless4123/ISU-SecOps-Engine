@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "inputs": [
+    {
+      "id": "testName",
+      "description": "Exact test name to debug",
+      "type": "promptString",
+      "default": ""
+    }
+  ],
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug: Main Binary",
+      "program": "${workspaceFolder}/target/debug/aegis-tls",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Build: Debug"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug: Test (by name)",
+      "cargo": {
+        "args": ["test", "--no-run", "--lib", "--"],
+        "filter": { "kind": "lib" }
+      },
+      "args": ["--exact", "${input:testName}", "--nocapture"],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

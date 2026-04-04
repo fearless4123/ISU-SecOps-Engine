@@ -1,4 +1,4 @@
-# ISU SecOps Engine - Test ve Doğrulama Dokümantasyonu (Testing)
+# AegisTLS - Test ve Doğrulama Dokümantasyonu (Testing)
 
 Sistemin siber güvenlik denetim yeteneklerini doğrulamak için yönergeler.
 
@@ -11,7 +11,7 @@ Sunucunun fiziksel konumunun ve ISS (ISP) bilgisinin doğru çekildiğini doğru
 - **Hedef**: `google.com`
 - **Beklenen**: United States / Mountain View (Google LLC).
 ```powershell
-./secops.exe pentest ssl-check google.com
+./aegis-tls.exe cli google.com --grade
 ```
 
 ### 2. 🌳 Trust Chain (Güven Zinciri) Testi
@@ -42,7 +42,7 @@ echo "google.com" > targets.txt
 echo "bing.com" >> targets.txt
 
 # Çalıştırma
-./secops.exe pentest ssl-check --file targets.txt --json reports
+# Not: Toplu tarama özelliği gelecekteki sürümlerde CLI komutlarına eklenecektir.
 ```
 - **Beklenen**: `reports/` klasörü altında her host için ayrı JSON raporu oluşturulmalıdır.
 

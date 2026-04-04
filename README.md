@@ -1,16 +1,16 @@
-# 🛡️ ISU SecOps Engine v0.5.0
+# 🛡️ AegisTLS v0.5.0
 ### Professional SSL/TLS Security Analyzer & Compliance Auditor
 
 [![Rust](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/audit-High--Fidelity-success)](https://github.com/)
 
-**ISU SecOps Engine**, modern web altyapıları için geliştirilmiş, yüksek performanslı ve asenkron bir SSL/TLS güvenlik denetim motorudur. Basit bir sertifika tarayıcısından öte, kurumsal düzeyde uyumluluk analizi (Compliance), aktif zafiyet taraması ve küresel istihbarat özellikleri sunar.
+**AegisTLS**, modern web altyapıları için geliştirilmiş, yüksek performanslı ve asenkron bir SSL/TLS güvenlik denetim motorudur. Basit bir sertifika tarayıcısından öte, kurumsal düzeyde uyumluluk analizi (Compliance), aktif zafiyet taraması ve küresel istihbarat özellikleri sunar.
 
-# 🛡️ ISU SecOps Engine
+# 🛡️ AegisTLS
 **Profesyonel SSL/TLS Güvenlik ve Denetim Platformu**
 
-ISU SecOps Engine, Rust dili ile geliştirilmiş, yüksek performanslı, asenkron ve çok katmanlı bir güvenlik analiz aracıdır. Hem terminal tutkunları için gelişmiş bir **CLI** (Komut Satırı Arayüzü) hem de görsel analiz isteyenler için modern bir **Web Dashboard** sunar.
+AegisTLS, Rust dili ile geliştirilmiş, yüksek performanslı, asenkron ve çok katmanlı bir güvenlik analiz aracıdır. Hem terminal tutkunları için gelişmiş bir **CLI** (Komut Satırı Arayüzü) hem de görsel analiz isteyenler için modern bir **Web Dashboard** sunar.
 
 ---
 
@@ -55,7 +55,7 @@ Ardından tarayıcınızda `http://localhost:8080` adresine gidin.
 - OpenSSL Geliştirici paketleri
 
 ---
-*Antigravity Security Team tarafından profesyoneller için geliştirildi.*
+*Aegis Security Team tarafından profesyoneller için geliştirildi.*
 
 ---
 
@@ -73,5 +73,5 @@ Daha detaylı bilgi için `docs/` klasöründeki dosyaları inceleyebilirsiniz:
 Bu proje MIT Lisansı altında lisanslanmıştır. Daha fazla bilgi için `LICENSE` dosyasına bakın.
 
 ---
-**Developed by ISU SecOps Team.**
+**Developed by Aegis Security Team.**
 *"Securing the web, one handshake at a time."*

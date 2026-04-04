@@ -1,5 +1,5 @@
 [package]
-name = "secops"
+name = "aegis-tls"
 version = "0.1.0"
 edition = "2024"
 
@@ -17,8 +17,8 @@ comfy-table = "7.1.0"
 indicatif = "0.17.8"
 console = "0.15.8"
 axum = { version = "0.7.5", features = ["macros"] }
-tower-http = { version = "0.5.2", features = ["fs", "cors"] }
+tower-http = { version = "0.5.2", features = ["cors", "fs"] }
 rust-embed = "8.3.0"
 dialoguer = "0.11.0"
 reqwest = { version = "0.12.4", features = ["json", "rustls-tls"] }
-trust-dns-resolver = "0.23.2"
+hickory-resolver = "0.24.1"

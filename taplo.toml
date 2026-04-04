@@ -1,0 +1,19 @@
+# Taplo configuration for TOML formatting
+# https://taplo.tamasfe.dev/configuration/
+
+[formatting]
+align_entries = false
+align_comments = true
+align_single_comments = true
+crlf = false
+implicit_array_newline = false
+implicit_table_newline = false
+indent_string = "  "
+trailing_newline = true
+trailing_whitespace = false
+
+[[rule]]
+keys = ["dependencies", "dev-dependencies", "features"]
+
+[rule.formatting]
+reorder_arrays = true

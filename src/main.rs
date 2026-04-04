@@ -1,15 +1,15 @@
-use clap::{Parser, Subcommand, CommandFactory};
-use dialoguer::{Select, Input, theme::ColorfulTheme};
+use clap::{Parser, Subcommand};
 use colored::*;
+use dialoguer::{Input, Select, theme::ColorfulTheme};
 
 mod ssl_check;
 mod web_ui;
 
 #[derive(Parser)]
-#[command(name = "secops")]
-#[command(author = "Antigravity Security Team")]
+#[command(name = "aegis-tls")]
+#[command(author = "Aegis Security Team")]
 #[command(version = "1.0.0")]
-#[command(about = "🛡️ ISU SecOps Engine - Profesyonel SSL/TLS Pentest Platformu", long_about = None)]
+#[command(about = "🛡️ AegisTLS - Profesyonel SSL/TLS Pentest Platformu", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -55,8 +55,11 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run_wizard() -> anyhow::Result<()> {
-    println!("\n{}", "🛡️  ISU SecOps Engine - İnteraktif Sihirbaz".bold().bright_cyan());
-    
+    println!(
+        "\n{}",
+        "🛡️  AegisTLS - İnteraktif Sihirbaz".bold().bright_cyan()
+    );
+
     let selections = &[
         "🔍 Hızlı Tarama (Domain)",
         "🌐 Web Dashboard Başlat",
