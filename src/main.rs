@@ -8,6 +8,7 @@ mod http_audit;
 mod port_scan;
 mod fuzzer;
 mod mail_audit;
+mod recon;
 
 #[derive(Parser)]
 #[command(name = "secops")]
@@ -68,6 +69,11 @@ enum PentestCommands {
         /// Target domain (e.g., example.com)
         domain: String,
     },
+    /// Information gathering (WHOIS & Geolocation)
+    Recon {
+        /// Target domain or IP (e.g., google.com)
+        target: String,
+    },
 }
 
 #[tokio::main]
@@ -94,6 +100,9 @@ async fn main() -> anyhow::Result<()> {
             }
             PentestCommands::MailAudit { domain } => {
                 mail_audit::run_mail_audit(&domain).await?;
+            }
+            PentestCommands::Recon { target } => {
+                recon::run_recon_module(&target).await?;
             }
         },
         Commands::WebUi { port } => {
