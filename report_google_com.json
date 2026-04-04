@@ -1,0 +1,48 @@
+{
+  "host": "google.com",
+  "certificate": {
+    "common_name": "*.google.com",
+    "subject_alt_names": [],
+    "issuer": "Unknown",
+    "not_before": "",
+    "not_after": "",
+    "is_valid": false,
+    "key_info": "",
+    "signature_algorithm": "",
+    "cipher_suite": "",
+    "hsts_enabled": false,
+    "revocation_status": "Good",
+    "security_headers": {
+      "X-Frame-Options": "SAMEORIGIN"
+    }
+  },
+  "cert_chain": [
+    "*.google.com",
+    "US",
+    "US"
+  ],
+  "tls_versions": [
+    {
+      "version": "TLS 1.0",
+      "supported": false
+    },
+    {
+      "version": "TLS 1.1",
+      "supported": false
+    },
+    {
+      "version": "TLS 1.2",
+      "supported": true
+    },
+    {
+      "version": "TLS 1.3",
+      "supported": true
+    }
+  ],
+  "supported_ciphers": [],
+  "caa_records": [
+    "0 issue \"pki.goog\""
+  ],
+  "vulnerabilities": [],
+  "grade": "F (Cert Invalid)"
+}
