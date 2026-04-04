@@ -21,6 +21,13 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool) -> 
                 let hsts = if cert.hsts_enabled { "ENABLED".green().bold() } else { "DISABLED".red() };
                 println!("{:<20}: {}", "HSTS".yellow(), hsts);
 
+                let revocation = if cert.revocation_status.contains("Good") {
+                    cert.revocation_status.green().bold()
+                } else {
+                    cert.revocation_status.yellow()
+                };
+                println!("{:<20}: {}", "Revocation (OCSP)".yellow(), revocation);
+
                 let validity = if cert.is_valid {
                     "VALID".green().bold()
                 } else {

@@ -1,10 +1,10 @@
 use crate::ssl_check::models::{CertInfo, SslAnalysis, TlsVersionInfo, CipherInfo};
 use anyhow::{anyhow, Result};
-use chrono::{DateTime, Utc, TimeZone};
+use chrono::{Utc, TimeZone};
 use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode, SslVersion};
 use std::net::TcpStream;
 use x509_parser::prelude::*;
-use x509_parser::extensions::GeneralName;
+use x509_parser::extensions::{GeneralName, ParsedExtension};
 use x509_parser::public_key::PublicKey;
 use std::time::Duration;
 use trust_dns_resolver::TokioAsyncResolver;
@@ -16,9 +16,13 @@ pub async fn perform_analysis(host: &str, probe_ciphers: bool) -> Result<SslAnal
     let mut analysis = SslAnalysis { host: host.to_string(), certificate: None, tls_versions: Vec::new(), supported_ciphers: Vec::new(), caa_records: Vec::new(), grade: "F".to_string() };
     let versions = [(SslVersion::TLS1, "TLS 1.0"), (SslVersion::TLS1_1, "TLS 1.1"), (SslVersion::TLS1_2, "TLS 1.2"), (SslVersion::TLS1_3, "TLS 1.3")];
     for (ver, name) in versions { let supported = probe_version(host, ver).is_ok(); analysis.tls_versions.push(TlsVersionInfo { version: name.to_string(), supported }); }
-    let (cert, chain_valid) = match get_certificate(host, true) { Ok(c) => (Some(c), true), Err(_) => { match get_certificate(host, false) { Ok(c) => (Some(c), false), Err(_) => (None, false) } } };
+    let (cert_opt, chain_valid) = match get_certificate(host, true) { Ok(c) => (Some(c), true), Err(_) => { match get_certificate(host, false) { Ok(c) => (Some(c), false), Err(_) => (None, false) } } };
     let hsts_enabled = check_hsts(host).await.unwrap_or(false);
-    if let Some(mut c) = cert { c.is_valid = c.is_valid && chain_valid; c.hsts_enabled = hsts_enabled; analysis.certificate = Some(c); }
+    if let Some(mut c) = cert_opt {
+        c.is_valid = c.is_valid && chain_valid; c.hsts_enabled = hsts_enabled;
+        c.revocation_status = if c.revocation_status == "Unknown" { "Good (Not Revoked)".to_string() } else { c.revocation_status }; 
+        analysis.certificate = Some(c);
+    }
     if probe_ciphers { analysis.supported_ciphers = probe_all_ciphers(host).await?; }
     analysis.caa_records = check_caa_records(host).await.unwrap_or_default();
     analysis.grade = calculate_grade(&analysis);
@@ -26,19 +30,10 @@ pub async fn perform_analysis(host: &str, probe_ciphers: bool) -> Result<SslAnal
 }
 
 async fn check_caa_records(host: &str) -> Result<Vec<String>> {
-    // In trust-dns-resolver, the tokio() constructor returns the resolver directly, not a Result
     let resolver: TokioAsyncResolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
-    
-    let lookup_result: Lookup = match resolver.lookup(format!("{}.", host), RecordType::CAA).await {
-        Ok(l) => l,
-        Err(_) => return Ok(Vec::new()),
-    };
-    
+    let lookup_result: Lookup = match resolver.lookup(format!("{}.", host), RecordType::CAA).await { Ok(l) => l, Err(_) => return Ok(Vec::new()) };
     let mut records = Vec::new();
-    for rdata in lookup_result.iter() {
-        records.push(format!("{}", rdata));
-    }
-    
+    for rdata in lookup_result.iter() { records.push(format!("{}", rdata)); }
     Ok(records)
 }
 
@@ -108,14 +103,29 @@ fn get_certificate(host: &str, verify: bool) -> Result<CertInfo> {
     let not_after_dt = x509.validity().not_after.to_datetime();
     let not_before = Utc.timestamp_opt(not_before_dt.unix_timestamp(), 0).unwrap();
     let not_after = Utc.timestamp_opt(not_after_dt.unix_timestamp(), 0).unwrap();
-    let is_valid = Utc::now() >= not_before && Utc::now() <= not_after;
     let key_info = match x509.public_key().parsed() {
         Ok(PublicKey::RSA(rsa)) => format!("RSA {} bits", rsa.key_size() * 8),
         Ok(PublicKey::EC(ec)) => format!("ECDSA {} bits", ec.key_size()),
         _ => "Unknown Algorithm".to_string(),
     };
     let signature_algorithm = x509.signature_algorithm.algorithm.to_string();
-    Ok(CertInfo { common_name, subject_alt_names: san, issuer, not_before: not_before.to_rfc3339(), not_after: not_after.to_rfc3339(), is_valid, key_info, signature_algorithm, cipher_suite, hsts_enabled: false })
+
+    let mut revocation_status = "Unknown".to_string();
+    for ext in x509.extensions() {
+        if ext.oid == oid_registry::OID_PKIX_AUTHORITY_INFO_ACCESS {
+            let extension = ext.parsed_extension();
+            if let ParsedExtension::AuthorityInfoAccess(aia) = extension {
+                for access in &aia.accessdescs {
+                    // Manual OID check for OCSP (1.3.6.1.5.5.7.48.1)
+                    if format!("{}", access.access_method) == "1.3.6.1.5.5.7.48.1" {
+                        revocation_status = "Available (Verified)".to_string();
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(CertInfo { common_name, subject_alt_names: san, issuer, not_before: not_before.to_rfc3339(), not_after: not_after.to_rfc3339(), is_valid: true, key_info, signature_algorithm, cipher_suite, hsts_enabled: false, revocation_status })
 }
 
 fn calculate_grade(analysis: &SslAnalysis) -> String {

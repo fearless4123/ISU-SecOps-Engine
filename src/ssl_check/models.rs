@@ -19,6 +19,7 @@ pub struct CertInfo {
     pub signature_algorithm: String,
     pub cipher_suite: String,
     pub hsts_enabled: bool,
+    pub revocation_status: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
