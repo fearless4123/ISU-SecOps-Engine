@@ -38,5 +38,6 @@ pub struct SslAnalysis {
     pub tls_versions: Vec<TlsVersionInfo>,
     pub supported_ciphers: Vec<CipherInfo>,
     pub caa_records: Vec<String>,
+    pub vulnerabilities: Vec<String>,
     pub grade: String,
 }

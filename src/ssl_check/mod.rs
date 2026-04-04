@@ -14,62 +14,32 @@ pub async fn run_analysis(host: &str, show_grade: bool, probe_ciphers: bool, jso
             println!("\n{}", "--- Certificate Information ---".bold().cyan());
             if let Some(ref cert) = analysis.certificate {
                 println!("{:<20}: {}", "Common Name".yellow(), cert.common_name);
-                println!("{:<20}: {}", "Issuer".yellow(), cert.issuer);
-                println!("{:<20}: {}", "Key Info".yellow(), cert.key_info);
-                println!("{:<20}: {}", "Signature Alg.".yellow(), cert.signature_algorithm);
-                println!("{:<20}: {}", "Not Before".yellow(), cert.not_before);
-                println!("{:<20}: {}", "Not After".yellow(), cert.not_after);
-                
-                let hsts = if cert.hsts_enabled { "ENABLED".green().bold() } else { "DISABLED".red() };
-                println!("{:<20}: {}", "HSTS".yellow(), hsts);
-
-                let revocation = if cert.revocation_status.contains("Good") || cert.revocation_status.contains("Available") {
-                    cert.revocation_status.green().bold()
-                } else {
-                    cert.revocation_status.yellow()
-                };
-                println!("{:<20}: {}", "Revocation (OCSP)".yellow(), revocation);
-
-                let validity = if cert.is_valid {
-                    "VALID".green().bold()
-                } else {
-                    "EXPIRED/INVALID".red().bold()
-                };
+                let validity = if cert.is_valid { "VALID".green().bold() } else { "EXPIRED/INVALID".red().bold() };
                 println!("{:<20}: {}", "Status".yellow(), validity);
             }
 
-            println!("\n{}", "--- Certificate Chain (Trust Path) ---".bold().cyan());
-            if analysis.cert_chain.is_empty() {
-                println!("{}", "  No chain information available.".red());
+            println!("\n{}", "--- Vulnerability Assessment ---".bold().cyan());
+            if analysis.vulnerabilities.is_empty() {
+                println!("  {} No common handshake vulnerabilities detected.", "✔".green());
             } else {
-                for (i, node) in analysis.cert_chain.iter().enumerate() {
-                    let indent = "  ".repeat(i);
-                    let prefix = if i == 0 { "●" } else { "┗━" };
-                    let color_node = if i == 0 { node.white().bold() } else if i == analysis.cert_chain.len() - 1 { node.green().bold() } else { node.yellow() };
-                    println!("{}{}{}", indent, prefix.dimmed(), color_node);
+                for vuln in &analysis.vulnerabilities {
+                    println!("  {} {}", "✖".red().bold(), vuln.red().bold());
                 }
+            }
+
+            println!("\n{}", "--- Certificate Chain (Trust Path) ---".bold().cyan());
+            for (i, node) in analysis.cert_chain.iter().enumerate() {
+                let indent = "  ".repeat(i);
+                let prefix = if i == 0 { "●" } else { "┗━" };
+                println!("{}{}{}", indent, prefix.dimmed(), node.white());
             }
 
             println!("\n{}", "--- Security Headers Audit ---".bold().cyan());
             if let Some(ref cert) = analysis.certificate {
-                let target_headers = vec!["Content-Security-Policy", "X-Frame-Options", "X-Content-Type-Options", "Referrer-Policy"];
+                let target_headers = vec!["Content-Security-Policy", "X-Frame-Options", "X-Content-Type-Options"];
                 for header in target_headers {
-                    let status = if let Some(val) = cert.security_headers.get(header) {
-                        format!("{} ({})", "PRESENT".green().bold(), val.dimmed())
-                    } else {
-                        "MISSING".red().to_string()
-                    };
+                    let status = if cert.security_headers.contains_key(header) { "PRESENT".green() } else { "MISSING".red() };
                     println!("{:<25}: {}", header.yellow(), status);
-                }
-            }
-
-            println!("\n{}", "--- DNS Security & Compliance ---".bold().cyan());
-            if analysis.caa_records.is_empty() {
-                println!("{:<20}: {}", "CAA Records".yellow(), "NONE".red());
-            } else {
-                println!("{:<20}:", "CAA Records".yellow());
-                for caa in &analysis.caa_records {
-                    println!("  ┗━ {}", caa.green());
                 }
             }
 
