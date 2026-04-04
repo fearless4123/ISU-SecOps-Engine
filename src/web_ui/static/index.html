@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISU SecOps Engine | Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1000px;
+            width: 90%;
+            margin: 0 auto;
+            padding-bottom: 4rem;
+        }
+
+        .search-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            flex: 1;
+            font-size: 1.125rem;
+            padding: 0.5rem 1rem;
+            outline: none;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .results.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            font-size: 0.9375rem;
+        }
+
+        .label { color: var(--text-secondary); }
+        .value { font-weight: 500; text-align: right; }
+
+        .grade-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .grade-value {
+            font-size: 5rem;
+            font-weight: 800;
+            margin: 1rem 0;
+            background: linear-gradient(to bottom, #fff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-pill {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-supported { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .status-not-supported { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .loader {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--accent-primary);
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-msg {
+            color: var(--danger);
+            text-align: center;
+            padding: 1.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">SECOPS ENGINE</div>
+        <div class="subtitle">Modül 3: SSL/TLS Security Analyzer</div>
+    </header>
+
+    <main>
+        <div class="search-container">
+            <input type="text" id="targetHost" placeholder="Enter target domain (e.g., google.com)" value="google.com">
+            <button id="scanBtn" onclick="runScan()">Analyze</button>
+        </div>
+
+        <div id="loader" class="loader"></div>
+        <div id="error" class="error-msg"></div>
+
+        <div id="results" class="results">
+            <!-- Cert Card -->
+            <div class="card">
+                <h3>Certificate Details</h3>
+                <div id="certInfo">
+                    <div class="info-row"><span class="label">Common Name</span> <span class="value" id="resCN">-</span></div>
+                    <div class="info-row"><span class="label">Issuer</span> <span class="value" id="resIssuer">-</span></div>
+                    <div class="info-row"><span class="label">Expires</span> <span class="value" id="resExpiry">-</span></div>
+                    <div class="info-row"><span class="label">Status</span> <span class="value" id="resStatus">-</span></div>
+                </div>
+            </div>
+
+            <!-- Protocols Card -->
+            <div class="card">
+                <h3>Protocol Support</h3>
+                <div id="protocolInfo">
+                    <div class="info-row"><span class="label">TLS 1.0</span> <span class="value" id="resTLS10">-</span></div>
+                    <div class="info-row"><span class="label">TLS 1.1</span> <span class="value" id="resTLS11">-</span></div>
+                    <div class="info-row"><span class="label">TLS 1.2</span> <span class="value" id="resTLS12">-</span></div>
+                    <div class="info-row"><span class="label">TLS 1.3</span> <span class="value" id="resTLS13">-</span></div>
+                </div>
+            </div>
+
+            <!-- Grade Card -->
+            <div class="card grade-card">
+                <h3>Security Grade</h3>
+                <div id="resGrade" class="grade-value">-</div>
+                <div class="subtitle" id="resGradeSub">Analyze to see grade</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function runScan() {
+            const host = document.getElementById('targetHost').value;
+            if (!host) return;
+
+            const scanBtn = document.getElementById('scanBtn');
+            const loader = document.getElementById('loader');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+
+            // Reset UI
+            scanBtn.disabled = true;
+            loader.style.display = 'block';
+            results.classList.remove('active');
+            error.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/scan/ssl?host=${encodeURIComponent(host)}`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                // Update UI
+                if (data.certificate) {
+                    document.getElementById('resCN').innerText = data.certificate.common_name;
+                    document.getElementById('resIssuer').innerText = data.certificate.issuer;
+                    document.getElementById('resExpiry').innerText = new Date(data.certificate.not_after).toLocaleDateString();
+                    document.getElementById('resStatus').innerHTML = data.certificate.is_valid ? 
+                        '<span class="status-pill status-supported">VALID</span>' : 
+                        '<span class="status-pill status-not-supported">INVALID</span>';
+                }
+
+                data.tls_versions.forEach(v => {
+                    const idMap = {
+                        'TLS 1.0': 'resTLS10',
+                        'TLS 1.1': 'resTLS11',
+                        'TLS 1.2': 'resTLS12',
+                        'TLS 1.3': 'resTLS13'
+                    };
+                    const id = idMap[v.version];
+                    if (id) {
+                        document.getElementById(id).innerHTML = v.supported ? 
+                            '<span class="status-pill status-supported">SUPPORTED</span>' : 
+                            '<span class="status-pill status-not-supported">NOT SUPPORTED</span>';
+                    }
+                });
+
+                document.getElementById('resGrade').innerText = data.grade.split(' ')[0];
+                document.getElementById('resGradeSub').innerText = data.grade;
+
+                results.classList.add('active');
+            } catch (e) {
+                error.innerText = `Scan failed: ${e.message}`;
+                error.style.display = 'block';
+            } finally {
+                scanBtn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
