@@ -10,6 +10,7 @@ mod fuzzer;
 mod mail_audit;
 mod recon;
 mod cms;
+mod vulnerability;
 
 #[derive(Parser)]
 #[command(name = "secops")]
@@ -80,6 +81,13 @@ enum PentestCommands {
         /// Target URL (e.g., https://wordpress.org)
         url: String,
     },
+    /// Basic CVE lookup for a service and version
+    CveCheck {
+        /// Service name (e.g., openssh)
+        product: String,
+        /// Version string (e.g., 7.2)
+        version: String,
+    },
 }
 
 #[tokio::main]
@@ -112,6 +120,9 @@ async fn main() -> anyhow::Result<()> {
             }
             PentestCommands::CmsDetect { url } => {
                 cms::run_cms_detect(&url).await?;
+            }
+            PentestCommands::CveCheck { product, version } => {
+                vulnerability::run_cve_check(&product, &version).await?;
             }
         },
         Commands::WebUi { port } => {
