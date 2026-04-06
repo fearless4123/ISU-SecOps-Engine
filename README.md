@@ -96,5 +96,6 @@ Bu proje MIT Lisansı altında lisanslanmıştır. Daha fazla bilgi için `LICEN
 
 ---
 **Developed by Yağız Genç.**
-**Danışman:** [Danışman]
+**Üniversite:** İstinye Üniversitesi
+**Danışman:** Keyvan Arasteh Abbasabad
 *"Securing the web, one handshake at a time."*
