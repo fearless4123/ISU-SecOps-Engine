@@ -36,6 +36,14 @@ Aşağıdaki videoda projenin nasıl çalıştığına dair kısa bir örnek yer
 
 ---
 
+## 🎬 Demo
+
+<video src="demo/project-demo.webm" width="800" controls autoplay loop>
+  Tarayıcınız video etiketini desteklemiyor. Alternatif olarak [videoyu indirebilirsiniz](demo/project-demo.webm).
+</video>
+
+---
+
 ## 🚀 Hızlı Başlangıç
 
 Bu proje, herhangi bir `.exe` karmaşasına girmeden doğrudan Rust araç zinciri üzerinden çalıştırılmak üzere optimize edilmiştir.
