@@ -38,9 +38,7 @@ Aşağıdaki videoda projenin nasıl çalıştığına dair kısa bir örnek yer
 
 ## 🎬 Demo
 
-<video src="demo/project-demo.webm" width="800" controls autoplay loop>
-  Tarayıcınız video etiketini desteklemiyor. Alternatif olarak [videoyu indirebilirsiniz](demo/project-demo.webm).
-</video>
+![AegisTLS Proje Demosu](demo/project-demo.gif)
 
 ---
 
