@@ -1,0 +1,9 @@
+* text=auto
+
+# Web files
+*.html diff=html
+*.css diff=css
+*.js diff=javascript
+
+# Rust files
+*.rs diff=rust

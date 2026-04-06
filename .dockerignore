@@ -1,0 +1,6 @@
+target/
+.git/
+.vscode/
+.github/
+**/*.rs.bk
+*.pdb

@@ -1,6 +1,18 @@
 # 🛡️ AegisTLS v0.5.0
 ### Professional SSL/TLS Security Analyzer & Compliance Auditor
 
+<div align="center">
+  <img src="https://www.istinye.edu.tr/sites/default/files/2020-09/logo-tr.png" alt="İstinye Üniversitesi Logosu" width="300" />
+</div>
+
+## 📑 İçindekiler
+- [Proje Demosu (Video)](#-proje-demosu-video)
+- [Hızlı Başlangıç](#-hızlı-başlangıç)
+- [Ana Özellikler](#-ana-özellikler)
+- [Gereksinimler](#️-gereksinimler)
+- [Dokümantasyon](#-dokümantasyon-documentation)
+- [Lisans](#️-lisans-license)
+
 [![Rust](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/audit-High--Fidelity-success)](https://github.com/)
@@ -11,6 +23,16 @@
 **Profesyonel SSL/TLS Güvenlik ve Denetim Platformu**
 
 AegisTLS, Rust dili ile geliştirilmiş, yüksek performanslı, asenkron ve çok katmanlı bir güvenlik analiz aracıdır. Hem terminal tutkunları için gelişmiş bir **CLI** (Komut Satırı Arayüzü) hem de görsel analiz isteyenler için modern bir **Web Dashboard** sunar.
+
+---
+
+## 🎥 Proje Demosu (Video)
+
+Aşağıdaki videoda projenin nasıl çalıştığına dair kısa bir örnek yer almaktadır:
+
+<video src="docs/demo.mp4" width="800" controls autoplay loop>
+  Tarayıcınız video etiketini desteklemiyor. Alternatif olarak [videoyu indirebilirsiniz](docs/demo.mp4).
+</video>
 
 ---
 
@@ -74,4 +96,5 @@ Bu proje MIT Lisansı altında lisanslanmıştır. Daha fazla bilgi için `LICEN
 
 ---
 **Developed by Yağız Genç.**
+**Danışman:** [Danışman]
 *"Securing the web, one handshake at a time."*

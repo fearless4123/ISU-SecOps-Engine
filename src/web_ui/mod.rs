@@ -31,7 +31,10 @@ pub async fn start_server(port: u16) -> anyhow::Result<()> {
 }
 
 async fn index_handler() -> Html<String> {
-    let index = Assets::get("index.html").expect("index.html not found");
+    let index = match Assets::get("index.html") {
+        Some(file) => file,
+        None => return Html("<h1>Dashboard Error</h1><p>index.html not found in embedded assets.</p>".to_string()),
+    };
     Html(String::from_utf8(index.data.to_vec()).unwrap_or_else(|_| "Decode Error".to_string()))
 }
 
